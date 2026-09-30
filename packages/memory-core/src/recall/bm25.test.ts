@@ -40,7 +40,7 @@ describe("tokenizeRecallText", () => {
     expect(tokens).toEqual(["api", "키", "설정"])
   })
 
-  it("#given Han and Kana text #when tokenized #then bigrams are emitted like Hangul", () => {
+  it("#given Han and Kana text #when tokenized #then bigrams are emitted like Hangul and Han characters also stand alone", () => {
     // given
     const text = "記憶検索 メモリ"
 
@@ -48,7 +48,29 @@ describe("tokenizeRecallText", () => {
     const tokens = tokenizeRecallText(text)
 
     // then
-    expect(tokens).toEqual(["記憶検索", "記憶", "憶検", "検索", "メモリ", "メモ", "モリ"])
+    expect(tokens).toEqual(["記憶検索", "記憶", "憶検", "検索", "記", "憶", "検", "索", "メモリ", "メモ", "モリ"])
+  })
+
+  it("#given a run mixing kanji and kana #when tokenized #then only the Han characters stand alone", () => {
+    // given
+    const text = "東京に行く"
+
+    // when
+    const tokens = tokenizeRecallText(text)
+
+    // then
+    expect(tokens).toEqual(["東京に行く", "東京", "京に", "に行", "行く", "東", "京", "行"])
+  })
+
+  it("#given a lone Han character next to a Han word #when tokenized #then the lone character is emitted once", () => {
+    // given
+    const text = "鍵 保管"
+
+    // when
+    const tokens = tokenizeRecallText(text)
+
+    // then
+    expect(tokens).toEqual(["鍵", "保管", "保", "管"])
   })
 
   it("#given a katakana word with a prolonged sound mark #when tokenized #then it stays one run with bigrams", () => {
@@ -70,7 +92,7 @@ describe("tokenizeRecallText", () => {
     const tokens = tokenizeRecallText(text)
 
     // then
-    expect(tokens).toEqual(["\u8a18\u61b6", "\u691c\u7d22"])
+    expect(tokens).toEqual(["\u8a18\u61b6", "\u8a18", "\u61b6", "\u691c\u7d22", "\u691c", "\u7d22"])
   })
 
   it("#given decomposed accented latin words #when tokenized #then marks compose or stay inside the word", () => {
@@ -84,7 +106,7 @@ describe("tokenizeRecallText", () => {
     expect(tokens).toEqual(["caf\u00e9", "x\u0301y", "menu"])
   })
 
-  it("#given a two-character run outside the basic plane #when tokenized #then no duplicate bigram is emitted", () => {
+  it("#given a two-character run outside the basic plane #when tokenized #then no duplicate bigram is emitted and each character stands alone", () => {
     // given
     const text = "\u{20000}\u{20001}"
 
@@ -92,7 +114,7 @@ describe("tokenizeRecallText", () => {
     const tokens = tokenizeRecallText(text)
 
     // then
-    expect(tokens).toEqual(["\u{20000}\u{20001}"])
+    expect(tokens).toEqual(["\u{20000}\u{20001}", "\u{20000}", "\u{20001}"])
   })
 
   it("#given NFD Hangul and full-width Latin #when tokenized #then they tokenize like their NFKC forms", () => {
@@ -105,9 +127,20 @@ describe("tokenizeRecallText", () => {
     expect(tokenizeRecallText(fullWidth)).toEqual(["npm", "토큰"])
   })
 
-  it("#given a lone CJK syllable #when tokenized #then no bigram is emitted and only an identical token can match", () => {
-    // given / when / then: a note that stores a lone syllable is unreachable from a longer query word
+  it("#given a lone Hangul syllable #when tokenized #then no bigram or single character is emitted and only an identical token can match", () => {
+    // given / when / then: a note that stores a lone Hangul or kana syllable is unreachable from a longer query word
     expect(tokenizeRecallText("키 보관")).toEqual(["키", "보관"])
+  })
+
+  it("#given a run mixing Hangul and Hanja #when tokenized #then only the Han characters stand alone", () => {
+    // given
+    const text = "韓國어"
+
+    // when
+    const tokens = tokenizeRecallText(text)
+
+    // then
+    expect(tokens).toEqual(["韓國어", "韓國", "國어", "韓", "國"])
   })
 
   it("#given punctuation and quotes only #when tokenized #then nothing is emitted", () => {
@@ -129,6 +162,49 @@ describe("rankRecallDocumentsBm25", () => {
 
     // then
     expect(ranked.map((entry) => entry.document.path)).toEqual(["reference/publish.md"])
+  })
+
+  it("#given a Chinese question sharing only single characters with a note #when ranked #then the note matches", () => {
+    // given: no two-character piece of the question occurs in either note
+    const documents = [
+      doc("reference/zh/expenses.md", "报销规定", "差旅报销上限为每天五百元"),
+      doc("reference/zh/meeting.md", "周会安排", "每周一上午开周会"),
+    ]
+
+    // when
+    const ranked = rankRecallDocumentsBm25(documents, ["出差能报多少钱"])
+
+    // then
+    expect(ranked.map((entry) => entry.document.path)).toEqual(["reference/zh/expenses.md"])
+  })
+
+  it("#given a query word longer than a note's lone Han character #when ranked #then the note matches", () => {
+    // given
+    const documents = [
+      doc("reference/ja/key.md", "鍵 保管", "受付の引き出し"),
+      doc("reference/ja/lunch.md", "昼食", "食堂は二階"),
+    ]
+
+    // when
+    const ranked = rankRecallDocumentsBm25(documents, ["鍵束"])
+
+    // then
+    expect(ranked.map((entry) => entry.document.path)).toEqual(["reference/ja/key.md"])
+  })
+
+  it("#given notes of equal token count where one holds a Han run #when a Latin term matches both #then their scores are equal", () => {
+    // given: five tokens each before the stand-alone Han characters, which must not count as length
+    const documents = [
+      doc("notes/zh.md", "deploy", "部署流程"),
+      doc("notes/en.md", "deploy", "one two three four"),
+    ]
+
+    // when
+    const ranked = rankRecallDocumentsBm25(documents, ["deploy"])
+
+    // then
+    expect(ranked.map((entry) => entry.document.path)).toEqual(["notes/en.md", "notes/zh.md"])
+    expect(ranked[0]?.score).toBe(ranked[1]?.score)
   })
 
   it("#given query terms of different rarity #when ranked #then the document holding the rarer term ranks first", () => {
