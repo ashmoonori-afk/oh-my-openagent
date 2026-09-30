@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test"
 import type { RecallDocument } from "./provider"
-import { rankRecallDocumentsBm25, tokenizeRecallText } from "./bm25"
+import { RECALL_EXPANSION_WEIGHTS, rankRecallDocumentsBm25, recallExpansionWeights, tokenizeRecallText } from "./bm25"
 
 function doc(path: string, description: string, body: string): RecallDocument {
   return { path, description, body }
@@ -299,5 +299,159 @@ describe("rankRecallDocumentsBm25", () => {
 
     // then
     expect(bodyReads).toBe(1)
+  })
+})
+
+describe("rankRecallDocumentsBm25 with expansions", () => {
+  const filler = "alpha beta gamma delta"
+
+  it("#given a note worded differently from the query #when the caller adds a synonym #then the note is found", () => {
+    // given
+    const documents = [
+      doc("notes/revert.md", "Release", `revert the release when the canary fails ${filler}`),
+      doc("notes/other.md", "Lunch", `order noodles on friday ${filler}`),
+    ]
+
+    // when
+    const plain = rankRecallDocumentsBm25(documents, ["undo shipment"])
+    const widened = rankRecallDocumentsBm25(documents, ["undo shipment"], { synonyms: ["revert", "release"] })
+
+    // then
+    expect(plain).toEqual([])
+    expect(widened.map((entry) => entry.document.path)).toEqual(["notes/revert.md"])
+  })
+
+  it("#given notes matching a query word, a synonym and a related term #when ranked #then the closer the term the higher the note", () => {
+    // given (equal lengths and one note per term, so only the weight decides; paths sort the other way)
+    const documents = [
+      doc("notes/c-literal.md", "One", `undo ${filler}`),
+      doc("notes/b-synonym.md", "One", `revert ${filler}`),
+      doc("notes/a-related.md", "One", `canary ${filler}`),
+    ]
+
+    // when
+    const ranked = rankRecallDocumentsBm25(documents, ["undo shipment"], { synonyms: ["revert"], related: ["canary"] })
+
+    // then
+    expect(ranked.map((entry) => entry.document.path)).toEqual(["notes/c-literal.md", "notes/b-synonym.md", "notes/a-related.md"])
+    const [literal, synonym, related] = ranked.map((entry) => entry.score)
+    expect(synonym).toBeCloseTo((literal ?? 0) * 0.75, 10)
+    expect(related).toBeCloseTo((literal ?? 0) * 0.4, 10)
+  })
+
+  it("#given a note holding every query word and a note rich in added terms #when ranked #then the full match stays first", () => {
+    // given
+    const documents = [
+      doc("notes/z-exact.md", "Runbook", `deploy ${Array.from({ length: 40 }, () => filler).join(" ")}`),
+      doc("notes/a-warm.md", "Rollout", "rollout release ship rollout release ship"),
+      doc("notes/m-none.md", "Lunch", `order noodles on friday ${filler}`),
+    ]
+    const expansions = { synonyms: ["rollout", "release", "ship"] }
+
+    // when
+    const ranked = rankRecallDocumentsBm25(documents, ["deploy"], expansions)
+
+    // then
+    expect(ranked.map((entry) => entry.document.path)).toEqual(["notes/z-exact.md", "notes/a-warm.md"])
+    expect(ranked[0]?.score).toBeGreaterThan(ranked[1]?.score ?? Number.POSITIVE_INFINITY)
+  })
+
+  it("#given several notes holding every query word #when the search is widened #then they keep the order they have without expansions", () => {
+    // given
+    const documents = [
+      doc("notes/long.md", "Runbook", `deploy rollout rollout rollout ${Array.from({ length: 30 }, () => filler).join(" ")}`),
+      doc("notes/short.md", "Runbook", "deploy checklist"),
+      doc("notes/warm.md", "Rollout", "rollout rollout"),
+    ]
+
+    // when
+    const plain = rankRecallDocumentsBm25(documents, ["deploy"]).map((entry) => entry.document.path)
+    const widened = rankRecallDocumentsBm25(documents, ["deploy"], { synonyms: ["rollout"] }).map((entry) => entry.document.path)
+
+    // then
+    expect(plain).toEqual(["notes/short.md", "notes/long.md"])
+    expect(widened).toEqual(["notes/short.md", "notes/long.md", "notes/warm.md"])
+  })
+
+  it("#given an added term the query already holds #when ranked #then the word is not counted twice", () => {
+    // given
+    const documents = [
+      doc("notes/a.md", "Deploy", `deploy deploy ${filler}`),
+      doc("notes/b.md", "Deploy", `deploy rollback ${filler} ${filler}`),
+    ]
+
+    // when
+    const plain = rankRecallDocumentsBm25(documents, ["deploy rollback"])
+    const widened = rankRecallDocumentsBm25(documents, ["deploy rollback"], { synonyms: ["Deploy"], related: ["deploys"] })
+
+    // then
+    expect(widened).toEqual(plain)
+  })
+
+  it("#given no expansions or empty ones #when ranked #then the ranking equals the two-argument call", () => {
+    // given
+    const documents = [
+      doc("notes/a.md", "Deploy", `deploy the lighthouse service ${filler}`),
+      doc("notes/b.md", "배포", "퍼블리시 절차와 배포 체크리스트"),
+      doc("notes/c.md", "鍵", "鍵束は玄関の棚に保管する"),
+    ]
+
+    // when / then
+    for (const query of ["deploy lighthouse", "퍼블리시할 배포", "鍵の保管"]) {
+      const plain = rankRecallDocumentsBm25(documents, [query])
+      expect(rankRecallDocumentsBm25(documents, [query], undefined)).toEqual(plain)
+      expect(rankRecallDocumentsBm25(documents, [query], {})).toEqual(plain)
+      expect(rankRecallDocumentsBm25(documents, [query], { synonyms: [], keywords: [" "], noteLine: "" })).toEqual(plain)
+    }
+  })
+
+  it("#given a Korean query and English keywords #when ranked #then the English note is found below a Korean match", () => {
+    // given
+    const documents = [
+      doc("notes/en.md", "Anniversary", `dinner reservation at le blanc for the anniversary ${filler}`),
+      doc("notes/ko.md", "기념일", `한남동 식당 예약 메모 ${filler}`),
+    ]
+
+    // when
+    const ranked = rankRecallDocumentsBm25(documents, ["한남동 예약"], { keywords: ["dinner reservation", "anniversary"] })
+
+    // then
+    expect(ranked.map((entry) => entry.document.path)).toEqual(["notes/ko.md", "notes/en.md"])
+  })
+})
+
+describe("rankRecallDocumentsBm25 on a very long unbroken run", () => {
+  it("#given a note that is one run of a million Han characters #when ranked #then it is indexed instead of overflowing the call stack", () => {
+    // given
+    const documents = [doc("notes/long.md", "", "漢".repeat(1_000_000))]
+
+    // when
+    const ranked = rankRecallDocumentsBm25(documents, ["漢"])
+
+    // then
+    expect(ranked.map((entry) => entry.document.path)).toEqual(["notes/long.md"])
+  })
+})
+
+describe("recallExpansionWeights", () => {
+  it("#given a term in several tiers and a term of the query #when weighed #then the highest tier wins and the query term is left out", () => {
+    // given
+    const expansions = { synonyms: ["canary"], related: ["canary oven", "deploy"], noteLine: "watch the canary for ten hours" }
+
+    // when
+    const weights = recallExpansionWeights(expansions, new Set(["deploy"]))
+
+    // then
+    expect(weights.get("canary")).toBe(0.75)
+    expect(weights.get("oven")).toBe(0.4)
+    expect(weights.get("ten")).toBe(0.4)
+    expect(weights.has("deploy")).toBe(false)
+  })
+
+  it("#given the tiers #when their weights are read #then a closer tier never weighs less than a looser one and none reaches a query word", () => {
+    expect(RECALL_EXPANSION_WEIGHTS.synonyms).toBeLessThan(1)
+    expect(RECALL_EXPANSION_WEIGHTS.keywords).toBeLessThan(1)
+    expect(RECALL_EXPANSION_WEIGHTS.related).toBeLessThan(RECALL_EXPANSION_WEIGHTS.synonyms)
+    expect(RECALL_EXPANSION_WEIGHTS.noteLine).toBeLessThan(RECALL_EXPANSION_WEIGHTS.keywords)
   })
 })
