@@ -632,6 +632,7 @@ relying on it, and expanding the entry shows that caveat.
 | `recall.sidecar_max_tokens` | `48000` | Sidecar context budget; the sidecar reseeds itself at 60% of it |
 | `recall.max_concurrent_wakes` | `2` | Machine-wide cap on wakes running at once |
 | `recall.tool_budget` | `8` | Read-only tool calls one wake may make before it is cut off |
+| `recall.query_expansion` | `false` | Let the sidecar add synonyms, keywords in your other languages and related terms to its own memory searches; each counts for less than a query word |
 
 Like the other memory blocks, every recall option can be overridden per agent under
 `memory.agents.<name>.recall`; `event_caps` merges field by field.
@@ -650,6 +651,17 @@ note that matches an English phrase from the conversation word for word keeps fi
 rarity treats common English endings as one word, so `rollback` still finds a note that says
 `rollbacks`. Chinese characters and Japanese kanji also count one by one, so a question can find a
 note it shares only single characters with.
+
+With `recall.query_expansion` on, the sidecar's own `memory` search takes four optional fields next
+to the query: `synonyms`, `keywords` (the topic in your other working languages), `related`, and one
+`note_line` written like a line of the note it is looking for. The sidecar model writes them in the
+same tool call; nothing is stored and no other model is called. A match on a synonym or keyword
+scores 0.75 of the same match on a query word and a match on a related term or the note line 0.4
+(a rare added term can still outscore a common query word), and a note that holds every word of the
+query stays ahead of the notes only an added term found, in the order it has without them. It is off by default because the
+sidecar spends extra output tokens on every search it widens. Off, the tool and its results are
+exactly what they are without the option. The candidates picked from the conversation before the
+sidecar wakes are not widened either way: no model runs at that step.
 
 #### Facts
 
