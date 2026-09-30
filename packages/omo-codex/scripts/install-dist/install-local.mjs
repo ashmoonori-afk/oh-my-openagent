@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// omo-codex-install:76bfd9555dc0f5ee104bb34f42f75e7c52948d77356eed6b57e7b57738df399f:1745be8f0e5a6fbaa5f97e2df68fa6cecf8bb9b22d612762cf912b589505c6b7
+// omo-codex-install:6920c11a90198cd8d22dccdb45b627744f02816703a28f4871b048c28d3549f3:253734964e998534620400addf9dcf383cf61eced0133140c3615159f4588f7a
 var __esm = (fn, res, err) => () => {
   if (fn)
     try {
@@ -19442,7 +19442,8 @@ var OmoMemoryRecallSchema = object({
   event_caps: OmoMemoryRecallEventCapsSchema.default({ tool_args: 400, result_head: 600, assistant: 1500, prompt: 4000 }),
   sidecar_max_tokens: number2().int().positive().default(48000),
   max_concurrent_wakes: number2().int().positive().default(2),
-  tool_budget: number2().int().positive().default(8)
+  tool_budget: number2().int().positive().default(8),
+  query_expansion: boolean2().default(false)
 }).strict();
 var OmoMemoryNudgeSchema = object({
   enabled: boolean2().default(true),
@@ -19503,7 +19504,8 @@ var OmoMemoryRecallLayerSchema = object({
   event_caps: OmoMemoryRecallEventCapsLayerSchema.optional(),
   sidecar_max_tokens: number2().int().positive().optional(),
   max_concurrent_wakes: number2().int().positive().optional(),
-  tool_budget: number2().int().positive().optional()
+  tool_budget: number2().int().positive().optional(),
+  query_expansion: boolean2().optional()
 }).strict();
 var OmoMemoryNudgeLayerSchema = object({
   enabled: boolean2().optional(),
@@ -19580,7 +19582,8 @@ var OmoMemorySettingsSchema = object({
     event_caps: { tool_args: 400, result_head: 600, assistant: 1500, prompt: 4000 },
     sidecar_max_tokens: 48000,
     max_concurrent_wakes: 2,
-    tool_budget: 8
+    tool_budget: 8,
+    query_expansion: false
   }),
   compile_warn_tokens: number2().int().positive().default(30000),
   agents: record(string2(), OmoMemoryAgentOverridesSchema).default({})
