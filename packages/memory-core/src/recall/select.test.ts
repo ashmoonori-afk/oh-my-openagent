@@ -317,6 +317,49 @@ describe("selectRecallCandidates automatic strategy", () => {
     expect(paths(automatic)).toEqual(["reference/publish.md"])
   })
 
+  it("#given a Chinese planner term sharing only single characters with a note #when the strategy is omitted #then the note surfaces", () => {
+    // given
+    const documents = [
+      doc("reference/zh/expenses.md", "报销规定", "差旅报销上限为每天五百元"),
+      doc("reference/zh/meeting.md", "周会安排", "每周一上午开周会"),
+    ]
+
+    // when
+    const candidates = selectRecallCandidates(documents, ["出差能报多少钱"], BASE_OPTS)
+
+    // then
+    expect(paths(candidates)).toEqual(["reference/zh/expenses.md"])
+  })
+
+  it("#given a long note matched only through single Han characters #when the strategy is omitted #then the excerpt centers on the match", () => {
+    // given: the matching sentence sits far past the excerpt length
+    const documents = [
+      doc("reference/zh/expenses.md", "费用说明", `${"intro ".repeat(60)}差旅报销上限为每天五百元`),
+      doc("reference/zh/meeting.md", "周会安排", "每周一上午开周会"),
+    ]
+
+    // when
+    const candidates = selectRecallCandidates(documents, ["出差能报多少钱"], BASE_OPTS)
+
+    // then
+    expect(paths(candidates)).toEqual(["reference/zh/expenses.md"])
+    expect(candidates[0]?.excerpt).toContain("差旅报销上限")
+  })
+
+  it("#given a note holding a longer query token and an earlier single Han character #when the strategy is omitted #then the longer token anchors the excerpt", () => {
+    // given: 报 occurs at the very start, the two-character piece 出差 only at the end
+    const documents = [
+      doc("reference/zh/travel.md", "差旅", `报${" filler".repeat(60)} 出差申请提前三天`),
+      doc("reference/zh/meeting.md", "周会安排", "每周一上午开周会"),
+    ]
+
+    // when
+    const candidates = selectRecallCandidates(documents, ["出差能报多少钱"], BASE_OPTS)
+
+    // then
+    expect(candidates[0]?.excerpt).toContain("出差申请")
+  })
+
   it("#given an NFD-stored Hangul note #when a composed Korean query selects #then the note surfaces", () => {
     // given: text pasted from macOS file names is often NFD
     const documents = [
@@ -354,6 +397,36 @@ describe("selectRecallCandidates with the hybrid strategy", () => {
     doc("c/notes.md", "notes", "a long note that mentions tmux once among many other words"),
   ]
   const queries = ["deploy", "tmux", "targeting"]
+
+  it("#given a Chinese planner term sharing only single characters with a note #when hybrid selects #then the note surfaces", () => {
+    // given: substring matching and the two-character pieces both miss
+    const chinese = [
+      doc("reference/zh/expenses.md", "报销规定", "差旅报销上限为每天五百元"),
+      doc("reference/zh/meeting.md", "周会安排", "每周一上午开周会"),
+    ]
+
+    // when
+    const substring = selectRecallCandidates(chinese, ["出差能报多少钱"], { ...BASE_OPTS, strategy: "substring" })
+    const hybrid = selectRecallCandidates(chinese, ["出差能报多少钱"], HYBRID_OPTS)
+
+    // then
+    expect(paths(substring)).toEqual([])
+    expect(paths(hybrid)).toEqual(["reference/zh/expenses.md"])
+  })
+
+  it("#given a long note matched only through single Han characters #when hybrid selects #then the excerpt centers on the match", () => {
+    // given
+    const chinese = [
+      doc("reference/zh/expenses.md", "费用说明", `${"intro ".repeat(60)}差旅报销上限为每天五百元`),
+      doc("reference/zh/meeting.md", "周会安排", "每周一上午开周会"),
+    ]
+
+    // when
+    const hybrid = selectRecallCandidates(chinese, ["出差能报多少钱"], HYBRID_OPTS)
+
+    // then
+    expect(hybrid[0]?.excerpt).toContain("差旅报销上限")
+  })
 
   it("#given documents only one ranker finds #when hybrid selects #then it returns the union of both rankers", () => {
     // given

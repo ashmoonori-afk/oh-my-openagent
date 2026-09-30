@@ -5,7 +5,7 @@
 // projection does not fit recall files, so the haystack is composed directly).
 
 import { matchScoreNormalized, normalizeText, parseQuery, type ParsedQuery } from "../search"
-import { rankRecallDocumentsBm25, tokenizeRecallText } from "./bm25"
+import { isHanCharacter, rankRecallDocumentsBm25, tokenizeRecallText } from "./bm25"
 import { normalizedHaystack } from "./haystack"
 import type { RecallDocument } from "./provider"
 import { chooseRecallStrategy, hasCjk, type RecallStrategy } from "./strategy"
@@ -96,7 +96,10 @@ function rankBm25Candidates(
   options: SelectRecallOptions,
 ): RecallCandidate[] {
   // One-character tokens (a lone CJK syllable, a version digit) match almost anywhere and would drag the window.
-  const queryTokens = [...new Set(queries.flatMap(tokenizeRecallText))].filter((token) => Array.from(token).length > 1)
+  // A Han character is a ranking term of its own, so it anchors the window only when no longer token does.
+  const tokens = [...new Set(queries.flatMap(tokenizeRecallText))]
+  const queryTokens = tokens.filter((token) => Array.from(token).length > 1)
+  const hanCharacters = tokens.filter(isHanCharacter)
   const candidates: RecallCandidate[] = []
   for (const { document, score } of rankRecallDocumentsBm25(documents, queries)) {
     if (isExcluded(document.path, options)) continue
@@ -104,7 +107,7 @@ function rankBm25Candidates(
       path: document.path,
       description: document.description,
       // The tokens are NFKC, so the window is searched in the NFKC body to stay anchored.
-      excerpt: buildExcerpt(document.body.normalize("NFKC"), queryTokens),
+      excerpt: buildExcerpt(document.body.normalize("NFKC"), queryTokens, hanCharacters),
       score: 1 / (1 + score),
     })
   }
@@ -198,23 +201,27 @@ function collectQueryTerms(parsedQueries: readonly ParsedQuery[]): string[] {
 
 /**
  * Excerpt is a body region centered on the first query-term match, or the body
- * head when no query term matches the body. Whitespace is collapsed to single
- * spaces and the result never exceeds EXCERPT_CHARS.
+ * head when no query term matches the body. The fallback terms are searched only
+ * when no term matches. Whitespace is collapsed to single spaces and the result
+ * never exceeds EXCERPT_CHARS.
  */
-function buildExcerpt(body: string, terms: readonly string[]): string {
+function buildExcerpt(body: string, terms: readonly string[], fallbackTerms: readonly string[] = []): string {
   const normalized = body.replace(/\s+/g, " ").trim()
   if (normalized === "") return ""
 
   const lowered = normalized.toLowerCase()
   let matchIndex = -1
   let matchLength = 0
-  for (const term of terms) {
-    const needle = normalizeText(term)
-    if (needle === "") continue
-    const index = lowered.indexOf(needle)
-    if (index >= 0 && (matchIndex < 0 || index < matchIndex)) {
-      matchIndex = index
-      matchLength = needle.length
+  for (const candidates of [terms, fallbackTerms]) {
+    if (matchIndex >= 0) break
+    for (const term of candidates) {
+      const needle = normalizeText(term)
+      if (needle === "") continue
+      const index = lowered.indexOf(needle)
+      if (index >= 0 && (matchIndex < 0 || index < matchIndex)) {
+        matchIndex = index
+        matchLength = needle.length
+      }
     }
   }
   if (matchIndex < 0) return normalized.slice(0, EXCERPT_CHARS)
