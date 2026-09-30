@@ -40,6 +40,7 @@ const FULL_DEFAULTS: OmoMemorySettings = {
     sidecar_max_tokens: 48000,
     max_concurrent_wakes: 2,
     tool_budget: 8,
+    query_expansion: false,
   },
   compile_warn_tokens: 30000,
   agents: {},
@@ -93,6 +94,7 @@ describe("OmoMemorySettingsSchema defaults", () => {
         sidecar_max_tokens: 48000,
         max_concurrent_wakes: 2,
         tool_budget: 8,
+        query_expansion: false,
       },
       compile_warn_tokens: 50000,
       agents: {
@@ -233,6 +235,7 @@ describe("OmoMemorySettingsSchema defaults", () => {
       sidecar_max_tokens: 48000,
       max_concurrent_wakes: 2,
       tool_budget: 8,
+      query_expansion: false,
     })
   })
 
@@ -261,6 +264,7 @@ describe("OmoMemorySettingsSchema defaults", () => {
         sidecar_max_tokens: 48000,
         max_concurrent_wakes: 2,
         tool_budget: 8,
+        query_expansion: false,
       },
     }
 
@@ -276,6 +280,7 @@ describe("OmoMemorySettingsSchema defaults", () => {
       sidecar_max_tokens: 48000,
       max_concurrent_wakes: 2,
       tool_budget: 8,
+      query_expansion: false,
     })
   })
 
@@ -350,5 +355,27 @@ describe("OmoMemorySettingsSchema defaults", () => {
 
     // then
     expect(parsed).toEqual(input)
+  })
+})
+
+describe("memory.recall.query_expansion", () => {
+  test("#given no recall block #when parsed #then query expansion is off", () => {
+    expect(OmoMemorySettingsSchema.parse({}).recall.query_expansion).toBe(false)
+  })
+
+  test("#given query expansion set at the root and for one agent #when parsed #then both values are kept", () => {
+    // given
+    const input = { recall: { query_expansion: true }, agents: { research: { recall: { query_expansion: false } } } }
+
+    // when
+    const parsed = OmoMemorySettingsSchema.parse(input)
+
+    // then
+    expect(parsed.recall.query_expansion).toBe(true)
+    expect(parsed.agents.research?.recall).toEqual({ query_expansion: false })
+  })
+
+  test("#given a query expansion value that is not a boolean #when parsed #then validation fails", () => {
+    expect(OmoMemorySettingsSchema.safeParse({ recall: { query_expansion: "on" } }).success).toBe(false)
   })
 })

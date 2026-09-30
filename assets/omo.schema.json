@@ -1944,7 +1944,8 @@
             },
             "sidecar_max_tokens": 48000,
             "max_concurrent_wakes": 2,
-            "tool_budget": 8
+            "tool_budget": 8,
+            "query_expansion": false
           },
           "type": "object",
           "properties": {
@@ -2022,6 +2023,10 @@
               "type": "integer",
               "exclusiveMinimum": 0,
               "maximum": 9007199254740991
+            },
+            "query_expansion": {
+              "default": false,
+              "type": "boolean"
             }
           },
           "required": [
@@ -2031,7 +2036,8 @@
             "event_caps",
             "sidecar_max_tokens",
             "max_concurrent_wakes",
-            "tool_budget"
+            "tool_budget",
+            "query_expansion"
           ],
           "additionalProperties": false
         },
@@ -2278,6 +2284,9 @@
                     "type": "integer",
                     "exclusiveMinimum": 0,
                     "maximum": 9007199254740991
+                  },
+                  "query_expansion": {
+                    "type": "boolean"
                   }
                 },
                 "additionalProperties": false
@@ -14055,6 +14064,9 @@
                   "type": "integer",
                   "exclusiveMinimum": 0,
                   "maximum": 9007199254740991
+                },
+                "query_expansion": {
+                  "type": "boolean"
                 }
               },
               "additionalProperties": false
@@ -14300,6 +14312,9 @@
                         "type": "integer",
                         "exclusiveMinimum": 0,
                         "maximum": 9007199254740991
+                      },
+                      "query_expansion": {
+                        "type": "boolean"
                       }
                     },
                     "additionalProperties": false
@@ -16156,6 +16171,9 @@
                   "type": "integer",
                   "exclusiveMinimum": 0,
                   "maximum": 9007199254740991
+                },
+                "query_expansion": {
+                  "type": "boolean"
                 }
               },
               "additionalProperties": false
@@ -16401,6 +16419,9 @@
                         "type": "integer",
                         "exclusiveMinimum": 0,
                         "maximum": 9007199254740991
+                      },
+                      "query_expansion": {
+                        "type": "boolean"
                       }
                     },
                     "additionalProperties": false
@@ -18257,6 +18278,9 @@
                   "type": "integer",
                   "exclusiveMinimum": 0,
                   "maximum": 9007199254740991
+                },
+                "query_expansion": {
+                  "type": "boolean"
                 }
               },
               "additionalProperties": false
@@ -18502,6 +18526,9 @@
                         "type": "integer",
                         "exclusiveMinimum": 0,
                         "maximum": 9007199254740991
+                      },
+                      "query_expansion": {
+                        "type": "boolean"
                       }
                     },
                     "additionalProperties": false
@@ -20364,6 +20391,9 @@
                     "type": "integer",
                     "exclusiveMinimum": 0,
                     "maximum": 9007199254740991
+                  },
+                  "query_expansion": {
+                    "type": "boolean"
                   }
                 },
                 "additionalProperties": false
@@ -20609,6 +20639,9 @@
                           "type": "integer",
                           "exclusiveMinimum": 0,
                           "maximum": 9007199254740991
+                        },
+                        "query_expansion": {
+                          "type": "boolean"
                         }
                       },
                       "additionalProperties": false
@@ -32366,6 +32399,9 @@
                         "type": "integer",
                         "exclusiveMinimum": 0,
                         "maximum": 9007199254740991
+                      },
+                      "query_expansion": {
+                        "type": "boolean"
                       }
                     },
                     "additionalProperties": false
@@ -32611,6 +32647,9 @@
                               "type": "integer",
                               "exclusiveMinimum": 0,
                               "maximum": 9007199254740991
+                            },
+                            "query_expansion": {
+                              "type": "boolean"
                             }
                           },
                           "additionalProperties": false
@@ -34467,6 +34506,9 @@
                         "type": "integer",
                         "exclusiveMinimum": 0,
                         "maximum": 9007199254740991
+                      },
+                      "query_expansion": {
+                        "type": "boolean"
                       }
                     },
                     "additionalProperties": false
@@ -34712,6 +34754,9 @@
                               "type": "integer",
                               "exclusiveMinimum": 0,
                               "maximum": 9007199254740991
+                            },
+                            "query_expansion": {
+                              "type": "boolean"
                             }
                           },
                           "additionalProperties": false
@@ -36568,6 +36613,9 @@
                         "type": "integer",
                         "exclusiveMinimum": 0,
                         "maximum": 9007199254740991
+                      },
+                      "query_expansion": {
+                        "type": "boolean"
                       }
                     },
                     "additionalProperties": false
@@ -36813,6 +36861,9 @@
                               "type": "integer",
                               "exclusiveMinimum": 0,
                               "maximum": 9007199254740991
+                            },
+                            "query_expansion": {
+                              "type": "boolean"
                             }
                           },
                           "additionalProperties": false
