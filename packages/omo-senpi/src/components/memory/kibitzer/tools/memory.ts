@@ -52,6 +52,8 @@ export interface KibitzerMemoryToolInput {
   readonly searchedPaths: Set<string>
   /** `memory.recall.query_expansion`. Off, the tool has the two-field search it always had. */
   readonly queryExpansion?: boolean
+  /** `memory.recall.chunking`; source notes and read output remain whole. */
+  readonly chunking?: boolean
 }
 
 export interface KibitzerMemorySearchHit {
@@ -121,6 +123,7 @@ function search(query: string | undefined, added: ExpansionArguments | undefined
     maxItems: input.caps.memorySearchResults + 1,
     surfaced: new Set(),
     ...(expansions === undefined ? {} : { expansions }),
+    chunking: input.chunking === true,
   })
   const truncated = selected.length > input.caps.memorySearchResults
   const results: KibitzerMemorySearchHit[] = selected.slice(0, input.caps.memorySearchResults).map((candidate) => ({

@@ -107,7 +107,8 @@ export function recallTerms(text: string): string[] {
  */
 const INDEXES = new WeakMap<readonly RecallDocument[], RecallBm25Index>()
 
-function indexFor(documents: readonly RecallDocument[]): RecallBm25Index {
+/** Production index preparation, also used to measure construction without including a query. */
+export function prepareRecallBm25Index(documents: readonly RecallDocument[]): RecallBm25Index {
   const cached = INDEXES.get(documents)
   if (cached !== undefined) return cached
 
@@ -206,7 +207,7 @@ export function rankRecallDocumentsBm25(
   const queryTerms = [...new Set(queries.flatMap(recallTerms))]
   if (queryTerms.length === 0 || documents.length === 0) return []
 
-  const index = indexFor(documents)
+  const index = prepareRecallBm25Index(documents)
   const averageLength = index.averageLength > 0 ? index.averageLength : 1
   const termScore = (term: string, frequencies: ReadonlyMap<string, number>, length: number): number => {
     const frequency = frequencies.get(term)

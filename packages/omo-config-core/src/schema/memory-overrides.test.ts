@@ -146,6 +146,17 @@ describe("OmoMemorySettingsLayerSchema", () => {
     expect(result.success).toBe(false)
   })
 
+  test("#given a recall chunking layer root and per-agent override #when parsed #then both stay default-free partials", () => {
+    // given
+    const input = { recall: { chunking: true }, agents: { research: { recall: { chunking: false } } } }
+
+    // when
+    const parsed = OmoMemorySettingsLayerSchema.parse(input)
+
+    // then
+    expect(parsed).toEqual(input)
+  })
+
   test("#given v2 block layer keys #when parsed #then they are accepted as deep-partials", () => {
     // given
     const input = {

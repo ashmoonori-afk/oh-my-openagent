@@ -10,6 +10,29 @@ interface SearchHit {
 }
 
 describe("memory tool (read-only)", () => {
+  test("#given a chunked search over a long committed note #when searched and read #then the winning section is returned once and the original note remains whole", async () => {
+    const root = await tempRoot()
+    const repo = await memoryRepo()
+    const path = "notes/nebula.md"
+    const body = `# Operations\n## Old incident\nnebula ${"ordinary log entry ".repeat(150)}\n## Listener\nnebula 원격 port is 4317.\n`
+    await commitMemory(repo, path, body, "Operations archive")
+    const head = await repo.head()
+    const off = harness({ workspaceRoot: root, repo })
+    const on = harness({ workspaceRoot: root, repo, chunking: true })
+
+    const plain = jsonOf(await off.call("memory", { operation: "search", query: "nebula 원격" }))
+    const result = jsonOf(await on.call("memory", { operation: "search", query: "nebula 원격" }))
+    const hits = result.results as SearchHit[]
+    expect((plain.results as SearchHit[])[0]?.excerpt).toContain("ordinary log entry")
+    expect(hits.map((hit) => hit.path)).toEqual([path])
+    expect(hits[0]?.description).toBe("Operations archive")
+    expect(hits[0]?.excerpt).toContain("port is 4317")
+    expect(hits[0]?.excerpt).not.toContain("ordinary log entry")
+    expect([...on.searchedPaths]).toEqual([path])
+    expect(textOf(await on.call("memory", { operation: "read", path }))).toContain(body)
+    expect(await repo.head()).toBe(head)
+  })
+
   test("#given committed memories #when search runs #then only corpus-verified paths are returned and recorded for nudging", async () => {
     const root = await tempRoot()
     const repo = await memoryRepo()

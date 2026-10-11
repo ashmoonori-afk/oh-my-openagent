@@ -1847,7 +1847,8 @@
             "sidecar_max_tokens": 48000,
             "max_concurrent_wakes": 2,
             "tool_budget": 8,
-            "query_expansion": false
+            "query_expansion": false,
+            "chunking": false
           },
           "type": "object",
           "properties": {
@@ -1921,6 +1922,10 @@
               "maximum": 9007199254740991
             },
             "query_expansion": {
+              "default": false,
+              "type": "boolean"
+            },
+            "chunking": {
               "default": false,
               "type": "boolean"
             }
@@ -2194,6 +2199,9 @@
                     "maximum": 9007199254740991
                   },
                   "query_expansion": {
+                    "type": "boolean"
+                  },
+                  "chunking": {
                     "type": "boolean"
                   }
                 },
@@ -4163,6 +4171,9 @@
                 },
                 "query_expansion": {
                   "type": "boolean"
+                },
+                "chunking": {
+                  "type": "boolean"
                 }
               },
               "additionalProperties": false
@@ -4426,6 +4437,9 @@
                         "maximum": 9007199254740991
                       },
                       "query_expansion": {
+                        "type": "boolean"
+                      },
+                      "chunking": {
                         "type": "boolean"
                       }
                     },
@@ -6371,6 +6385,9 @@
                 },
                 "query_expansion": {
                   "type": "boolean"
+                },
+                "chunking": {
+                  "type": "boolean"
                 }
               },
               "additionalProperties": false
@@ -6634,6 +6651,9 @@
                         "maximum": 9007199254740991
                       },
                       "query_expansion": {
+                        "type": "boolean"
+                      },
+                      "chunking": {
                         "type": "boolean"
                       }
                     },
@@ -8579,6 +8599,9 @@
                 },
                 "query_expansion": {
                   "type": "boolean"
+                },
+                "chunking": {
+                  "type": "boolean"
                 }
               },
               "additionalProperties": false
@@ -8842,6 +8865,9 @@
                         "maximum": 9007199254740991
                       },
                       "query_expansion": {
+                        "type": "boolean"
+                      },
+                      "chunking": {
                         "type": "boolean"
                       }
                     },
@@ -10785,6 +10811,9 @@
                   },
                   "query_expansion": {
                     "type": "boolean"
+                  },
+                  "chunking": {
+                    "type": "boolean"
                   }
                 },
                 "additionalProperties": false
@@ -11048,6 +11077,9 @@
                           "maximum": 9007199254740991
                         },
                         "query_expansion": {
+                          "type": "boolean"
+                        },
+                        "chunking": {
                           "type": "boolean"
                         }
                       },
@@ -12993,6 +13025,9 @@
                       },
                       "query_expansion": {
                         "type": "boolean"
+                      },
+                      "chunking": {
+                        "type": "boolean"
                       }
                     },
                     "additionalProperties": false
@@ -13256,6 +13291,9 @@
                               "maximum": 9007199254740991
                             },
                             "query_expansion": {
+                              "type": "boolean"
+                            },
+                            "chunking": {
                               "type": "boolean"
                             }
                           },
@@ -15201,6 +15239,9 @@
                       },
                       "query_expansion": {
                         "type": "boolean"
+                      },
+                      "chunking": {
+                        "type": "boolean"
                       }
                     },
                     "additionalProperties": false
@@ -15464,6 +15505,9 @@
                               "maximum": 9007199254740991
                             },
                             "query_expansion": {
+                              "type": "boolean"
+                            },
+                            "chunking": {
                               "type": "boolean"
                             }
                           },
@@ -17409,6 +17453,9 @@
                       },
                       "query_expansion": {
                         "type": "boolean"
+                      },
+                      "chunking": {
+                        "type": "boolean"
                       }
                     },
                     "additionalProperties": false
@@ -17672,6 +17719,9 @@
                               "maximum": 9007199254740991
                             },
                             "query_expansion": {
+                              "type": "boolean"
+                            },
+                            "chunking": {
                               "type": "boolean"
                             }
                           },

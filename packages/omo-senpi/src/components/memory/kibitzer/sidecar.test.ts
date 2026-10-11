@@ -650,6 +650,7 @@ describe("KibitzerSidecar wake governance", () => {
       maxConcurrentWakes: 1,
       eventCaps: { toolArgs: 400, resultHead: 600, assistant: 1500, prompt: 12 },
       queryExpansion: false,
+      chunking: false,
     })
     const harness = sidecarHarness({ toolBudget: settings.toolBudget, sidecarMaxTokens: settings.sidecarMaxTokens, eventCaps: settings.eventCaps })
     harness.prompt(1, "how do we handle kubernetes rollouts")

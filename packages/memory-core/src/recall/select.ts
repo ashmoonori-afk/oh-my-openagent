@@ -14,6 +14,7 @@ import {
   type RecallQueryExpansions,
 } from "./bm25"
 import { normalizedHaystack } from "./haystack"
+import { chunkRecallDocuments, RECALL_CHUNK_CHARS } from "./chunks"
 import type { RecallDocument } from "./provider"
 import { chooseRecallStrategy, hasCjk, type RecallStrategy } from "./strategy"
 
@@ -40,6 +41,10 @@ export interface SelectRecallOptions {
    * empty, the selection is exactly what it is without the option.
    */
   readonly expansions?: RecallQueryExpansions
+  /** Scoring-only heading chunks for BM25; omitted or false preserves whole-note selection. */
+  readonly chunking?: boolean
+  /** Positive body code-point cap. Internal override for the frozen benchmark, not user config. */
+  readonly chunkChars?: number
 }
 
 export { RECALL_EXPANSION_WEIGHTS, type RecallQueryExpansions } from "./bm25"
@@ -90,7 +95,7 @@ function rankByStrategy(
 ): RecallCandidate[] {
   if (strategy === "bm25") return rankBm25(documents, queries, options, undefined).candidates
   if (strategy === "hybrid") return pinPhraseLeader(
-    fuseCandidates(rankSubstringCandidates(documents, parsedQueries, options), rankBm25(documents, queries, options, undefined).candidates),
+    fuseCandidates(rankSubstringCandidates(documents, parsedQueries, options), rankBm25(documents, queries, options, undefined).candidates, options.chunking === true),
     phraseLeaderPath(documents, parsedQueries, options),
   )
   return rankSubstringCandidates(documents, parsedQueries, options)
@@ -114,6 +119,13 @@ function widenCandidates(
 ): RecallCandidate[] {
   const widened = rankBm25(documents, queries, options, options.expansions)
   const holdsEveryWord = new Set(widened.fullMatches)
+  if (options.chunking === true) {
+    // A note's exact query words can live under different headings. Chunking
+    // must not let expansion-only hits displace that note's unwidened winner.
+    for (const hit of rankRecallDocumentsBm25(documents, queries, options.expansions)) {
+      if (hit.fullMatch === true) holdsEveryWord.add(hit.document.path)
+    }
+  }
   if (strategy !== "bm25") {
     for (const candidate of rankSubstringCandidates(documents, parsedQueries, options)) holdsEveryWord.add(candidate.path)
   }
@@ -181,14 +193,22 @@ function rankBm25(
   const addedHanCharacters = added.filter(isHanCharacter)
   const candidates: RecallCandidate[] = []
   const fullMatches: string[] = []
-  for (const { document, score, fullMatch } of rankRecallDocumentsBm25(documents, queries, expansions)) {
+  const chunking = options.chunking === true
+  const indexed = chunking ? chunkRecallDocuments(documents, options.chunkChars ?? RECALL_CHUNK_CHARS) : documents
+  const descriptions = chunking ? new Map(documents.map((document) => [document.path, document.description])) : undefined
+  const seen = chunking ? new Set<string>() : undefined
+  for (const { document, score, fullMatch } of rankRecallDocumentsBm25(indexed, queries, expansions)) {
     if (isExcluded(document.path, options)) continue
     if (fullMatch === true) fullMatches.push(document.path)
+    if (seen?.has(document.path)) continue
+    seen?.add(document.path)
+    const excerpt = buildExcerpt(document.body.normalize("NFKC"), queryTokens, hanCharacters, addedTokens, addedHanCharacters)
     candidates.push({
       path: document.path,
-      description: document.description,
+      description: descriptions?.get(document.path) ?? document.description,
       // The tokens are NFKC, so the window is searched in the NFKC body to stay anchored.
-      excerpt: buildExcerpt(document.body.normalize("NFKC"), queryTokens, hanCharacters, addedTokens, addedHanCharacters),
+      // Legacy code-unit windows stay identical when off; chunked windows do not expose half an emoji.
+      excerpt: chunking ? excerpt.replace(/^[\uDC00-\uDFFF]|[\uD800-\uDBFF]$/gu, "") : excerpt,
       score: 1 / (1 + score),
     })
   }
@@ -202,9 +222,10 @@ function rankBm25(
  * of by its position; on the padded benchmark corpora rank-weighted substring votes pushed filler
  * notes above the answer. That flat vote equals the vote of bm25's first place, so fused ties break
  * on the bm25 rank (a note bm25 does not rank sorts after one it does) and only then on the path. A
- * note keeps its substring excerpt when it has one. The score keeps the contract as 1 / (1 + fused).
+ * note keeps its substring excerpt when chunking is off; chunking keeps the BM25 winning excerpt.
+ * The score keeps the contract as 1 / (1 + fused).
  */
-function fuseCandidates(substring: readonly RecallCandidate[], bm25: readonly RecallCandidate[]): RecallCandidate[] {
+function fuseCandidates(substring: readonly RecallCandidate[], bm25: readonly RecallCandidate[], chunking = false): RecallCandidate[] {
   const fused = new Map<string, { candidate: RecallCandidate; weight: number; bm25Rank: number }>()
   const vote = (candidate: RecallCandidate, weight: number, bm25Rank: number): void => {
     const entry = fused.get(candidate.path)
@@ -212,6 +233,7 @@ function fuseCandidates(substring: readonly RecallCandidate[], bm25: readonly Re
     else {
       entry.weight += weight
       entry.bm25Rank = Math.min(entry.bm25Rank, bm25Rank)
+      if (chunking && Number.isFinite(bm25Rank)) entry.candidate = candidate
     }
   }
   for (const candidate of substring) vote(candidate, 1 / (RRF_K + 1), Number.POSITIVE_INFINITY)

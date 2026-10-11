@@ -44,6 +44,7 @@
 // Every wait is an RPC event, a filesystem change or a process exit with a bounded timeout. Evidence
 // is structured: the mock's request log, the parent session JSONL and every child transcript.
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs"
+import { createHash } from "node:crypto"
 import { join } from "node:path"
 import { pathToFileURL } from "node:url"
 import { isDeepStrictEqual } from "node:util"
@@ -92,7 +93,7 @@ import {
   writeOmoConfig,
 } from "./kibitzer-sidecar-support.mjs"
 
-export const SCENARIOS = ["happy", "provider-429", "context-reseed", "category-unavailable", "refused-pinned-model", "cjk-auto", "query-expansion"]
+export const SCENARIOS = ["happy", "provider-429", "context-reseed", "category-unavailable", "refused-pinned-model", "cjk-auto", "query-expansion", "heading-chunks"]
 /** The pinned model the refused-pinned-model provider refuses, and the builtin quick rung it falls back to. */
 const REFUSED_MODEL = "refused-1"
 const BUILTIN_RUNG = { provider: "deepseek", id: "deepseek-flash" }
@@ -101,6 +102,7 @@ const CONFIG = {
   "category-unavailable": { categories: {} },
   "refused-pinned-model": { categories: { quick: { description: "QA pin outside the builtin quick chain", model: `omo-mock/${REFUSED_MODEL}` } } },
   "query-expansion": { recall: { query_expansion: true } },
+  "heading-chunks": { recall: { chunking: true } },
 }
 /** A search whose own words match no seeded memory; only the added terms reach the helm memory. */
 const WIDENED_SEARCH = {
@@ -122,9 +124,17 @@ const KOREAN_PUBLISH = {
   body: "배포 토큰은 키체인에 저장한다.",
   prompt: "퍼블리시할 때 막히면 어디서 꺼내 써",
 }
+/** An early weak hit and a short, specific later section in one unchanged note. */
+const CHUNK_NOTE = {
+  path: "reference/nebula-listener.md",
+  description: "Operations archive",
+  body: `# Operations\n## Old incident\nnebula listener\n${Array.from({ length: 110 }, (_, i) => `Archive ${i}: crate ${i * i}; route ${i + 17}; weight ${i % 19}.\n`).join("")}## Remote listener\nnebula listener 원격 port is 4317.\n`,
+  prompt: "nebula listener 원격",
+}
 /** Scenario-specific seed corpus; every other scenario seeds the two disjoint English memories. */
 const SEEDS = {
   "cjk-auto": [MEMORIES.rollout, MEMORIES.helm, KOREAN_PUBLISH],
+  "heading-chunks": [MEMORIES.rollout, MEMORIES.helm, CHUNK_NOTE],
 }
 /** A non-transient refusal: Devin's Connect trailer surfaces as `permission_denied`; an HTTP provider answers 403. */
 const PERMISSION_DENIED_STEP = {
@@ -594,7 +604,60 @@ async function runQueryExpansion({ session, state, identity, router, facts, pare
   }
 }
 
-const RUNNERS = { happy: runHappy, "provider-429": runProvider429, "context-reseed": runContextReseed, "category-unavailable": runCategoryUnavailable, "refused-pinned-model": runRefusedPinnedModel, "cjk-auto": runCjkAuto, "query-expansion": runQueryExpansion }
+async function runHeadingChunks({ session, state, identity, router, facts, parentTurns, record }) {
+  const sourcePath = join(identity, "repo", CHUNK_NOTE.path)
+  const source = () => readFileSync(sourcePath, "utf8")
+  const digest = (text) => createHash("sha256").update(text).digest("hex")
+  const before = source()
+  const sourceSha256 = digest(before)
+  const nudgeMemory = { ...CHUNK_NOTE, body: "The nebula remote listener uses port 4317." }
+  router.setParentSteps([{ type: "text", text: "Checking." }, { type: "text", text: "Done." }])
+  router.setSidecarSteps([
+    { type: "tool_call", name: "memory", arguments: { operation: "search", query: CHUNK_NOTE.prompt } },
+    { type: "tool_call", name: "memory", arguments: { operation: "read", path: CHUNK_NOTE.path } },
+    nudgeStep(nudgeMemory),
+  ])
+
+  const accepted = waitForAccepted(identity, state, nudgeMemory, { description: "heading-chunks: deep section was judged and nudged" })
+  await prompt(session, CHUNK_NOTE.prompt)
+  const held = await accepted
+  const lineage = sidecarDirs(identity)[0]
+  const transcript = lineage === undefined ? undefined : childTranscripts(lineage.dir)[0]
+  const seedText = messageText(transcript?.users[0])
+  const candidates = candidatePathsOf(seedText)
+  record("one-note-candidate", candidates.filter((path) => path === CHUNK_NOTE.path).length === 1, `candidates=${candidates.join(",")}`)
+  record("collector-winning-section", seedText.includes("port is 4317") && !seedText.includes("Archive 0:"), `seed=${seedText.slice(-1600)}`)
+  const calls = transcript?.assistants.flatMap(toolCallsOf) ?? []
+  // Mock call IDs repeat between turns; this script performs search, then read.
+  const operations = calls.filter((call) => call.name === "memory").map((call) => call.arguments?.operation)
+  const memoryResults = transcript?.entries.filter((entry) => entry.type === "message" && entry.message?.role === "toolResult" && entry.message.toolName === "memory").map((entry) => entry.message) ?? []
+  record("memory-search-read-order", operations.join(",") === "search,read" && memoryResults.length === 2, `operations=${operations.join(",")} results=${memoryResults.length}`)
+  const [searchResult, readResult] = memoryResults
+  const hits = searchResult === undefined ? [] : JSON.parse(messageText(searchResult)).results
+  record("search-winning-section", Array.isArray(hits) && hits.filter((hit) => hit.path === CHUNK_NOTE.path).length === 1 && hits.some((hit) => hit.path === CHUNK_NOTE.path && hit.description === CHUNK_NOTE.description && hit.excerpt.includes("port is 4317") && !hit.excerpt.includes("Archive 0:")), `search=${searchResult === undefined ? "absent" : messageText(searchResult)}`)
+  record("read-original-whole-note", readResult?.isError !== true && messageText(readResult).includes(CHUNK_NOTE.body), `readChars=${messageText(readResult).length} sourceChars=${CHUNK_NOTE.body.length}`)
+  record("nudge-accepted", held.nudges.some((nudge) => nudge.path === CHUNK_NOTE.path), `held=${JSON.stringify(held)}`)
+
+  await prompt(session, CHUNK_NOTE.prompt)
+  const entries = readEntries(state.sessionFile)
+  record("nudge-reached-parent-once", nudgedPaths(entries).filter((path) => path === CHUNK_NOTE.path).length === 1 && entries.filter(isRecall).some((entry) => (entry.content ?? "").includes(nudgeMemory.body)), `paths=${nudgedPaths(entries).join(",")}`)
+  const afterSha256 = digest(source())
+  record("markdown-unchanged", before.includes(CHUNK_NOTE.body) && afterSha256 === sourceSha256, `before=${sourceSha256} after=${afterSha256}`)
+  facts.result = {
+    resident: sidecarDirs(identity).length === 1,
+    childSessions: lineage === undefined ? 0 : childTranscripts(lineage.dir).length,
+    nudged: nudgedPaths(entries).filter((path) => path === CHUNK_NOTE.path).length,
+    chunking: true,
+    candidates,
+    sourceSha256,
+    afterSha256,
+    nudgedPaths: nudgedPaths(entries),
+    sidecarRequests: router.state.sidecar,
+    parentRequests: parentTurns(),
+  }
+}
+
+const RUNNERS = { happy: runHappy, "provider-429": runProvider429, "context-reseed": runContextReseed, "category-unavailable": runCategoryUnavailable, "refused-pinned-model": runRefusedPinnedModel, "cjk-auto": runCjkAuto, "query-expansion": runQueryExpansion, "heading-chunks": runHeadingChunks }
 
 // ---- main --------------------------------------------------------------------------------------------------------
 

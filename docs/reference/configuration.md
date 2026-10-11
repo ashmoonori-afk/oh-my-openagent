@@ -678,6 +678,7 @@ relying on it, and expanding the entry shows that caveat.
 | `recall.max_concurrent_wakes` | `2` | Machine-wide cap on wakes running at once |
 | `recall.tool_budget` | `8` | Read-only tool calls one wake may make before it is cut off |
 | `recall.query_expansion` | `false` | Let the sidecar add synonyms, keywords in your other languages and related terms to its own memory searches; each counts for less than a query word |
+| `recall.chunking` | `false` | Score each note by its Markdown sections instead of one whole body, so a query can find a passage deep inside a long note; a note still surfaces once, and stored Markdown and read output are unchanged |
 
 Like the other memory blocks, every recall option can be overridden per agent under
 `memory.agents.<name>.recall`; `event_caps` merges field by field.
@@ -709,6 +710,12 @@ reported in the result while the query still runs as plain recall. It is off by 
 sidecar spends extra output tokens on every search it widens. Off, the tool and its results are exactly
 what they are without the option. The candidates picked from the conversation before the
 sidecar wakes are not widened either way: no model runs at that step.
+
+With `recall.chunking` on, the retriever scores each note by its Markdown sections rather than as one body. Stored Markdown and the text `read` returns are unchanged, and each original note still appears at most once. When BM25 finds a note, its best-scoring section supplies the excerpt, including in fused hybrid results. Hits found only by the substring matcher retain their original-note excerpt.
+
+Sections follow top-level ATX (`#`) and Setext (`===` / `---`) headings outside fenced code. The fixed production cap is 4000 Unicode code points of the source body, measured before NFKC; title and description are repeated outside that cap. Oversized sections split at a line or whitespace boundary, or at a code-point boundary for an unbroken run. Such a hard boundary can divide a lexical token. The cap and ranker are not configurable. Note-path exclusions and original-note full-match priority over expansion-only matches are preserved. Small English memories keep whole-note AND substring matching even when chunking is on. Automatic strategy selection still uses the original note count and CJK share, never the chunk count.
+
+The cap was selected on a separately frozen practice split before evaluation. Reproduce the comparison with `bun packages/omo-senpi/scripts/qa/recall-chunks-bench.mjs --split practice --json`, then `--split evaluation --json`. The runner reads pinned public repository docs and authored fictional notes, not private memories. Its expansion terms are independently authored fixture data, not measured model output; results do not establish gains on a user's memory corpus.
 
 #### Facts
 

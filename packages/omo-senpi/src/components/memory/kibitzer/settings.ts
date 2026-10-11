@@ -20,6 +20,8 @@ export interface KibitzerSidecarSettings {
   readonly eventCaps: KibitzerEventCaps
   /** `memory.recall.query_expansion`: whether the memory tool's search accepts added terms. Off by default. */
   readonly queryExpansion: boolean
+  /** `memory.recall.chunking`: heading-bounded scoring without changing note storage. */
+  readonly chunking: boolean
 }
 
 export function resolveKibitzerSidecarSettings(recall: OmoMemoryRecall): KibitzerSidecarSettings {
@@ -35,5 +37,6 @@ export function resolveKibitzerSidecarSettings(recall: OmoMemoryRecall): Kibitze
       prompt: recall.event_caps.prompt,
     },
     queryExpansion: recall.query_expansion,
+    chunking: recall.chunking,
   }
 }

@@ -182,6 +182,7 @@ export function createMemoryRecallWiring(options: MemoryRecallWiringOptions): Me
       maxItems: recall.max_items,
       surfaced,
       excludePaths,
+      chunking: recall.chunking,
     })
     if (candidates.length === 0) return undefined
     return {

@@ -42,6 +42,7 @@ const FULL_DEFAULTS: OmoMemorySettings = {
     max_concurrent_wakes: 2,
     tool_budget: 8,
     query_expansion: false,
+    chunking: false,
   },
   projection: { max_entries_per_directory: 40, max_bytes: 24576 },
   compile_warn_tokens: 30000,
@@ -97,6 +98,7 @@ describe("OmoMemorySettingsSchema defaults", () => {
         max_concurrent_wakes: 2,
         tool_budget: 8,
         query_expansion: false,
+        chunking: false,
       },
       projection: { max_entries_per_directory: 12, max_bytes: 4096 },
       compile_warn_tokens: 50000,
@@ -239,6 +241,7 @@ describe("OmoMemorySettingsSchema defaults", () => {
       max_concurrent_wakes: 2,
       tool_budget: 8,
       query_expansion: false,
+      chunking: false,
     })
   })
 
@@ -268,6 +271,7 @@ describe("OmoMemorySettingsSchema defaults", () => {
         max_concurrent_wakes: 2,
         tool_budget: 8,
         query_expansion: false,
+        chunking: false,
       },
     }
 
@@ -284,6 +288,7 @@ describe("OmoMemorySettingsSchema defaults", () => {
       max_concurrent_wakes: 2,
       tool_budget: 8,
       query_expansion: false,
+      chunking: false,
     })
   })
 
@@ -380,6 +385,32 @@ describe("memory.recall.query_expansion", () => {
 
   test("#given a query expansion value that is not a boolean #when parsed #then validation fails", () => {
     const recall = { query_expansion: "on" }
+    expect(OmoMemorySettingsSchema.safeParse({ recall }).success).toBe(false)
+    expect(OmoMemoryRecallLayerSchema.safeParse(recall).success).toBe(false)
+    expect(OmoMemorySettingsLayerSchema.safeParse({ recall }).success).toBe(false)
+    expect(OmoMemorySettingsLayerSchema.safeParse({ agents: { research: { recall } } }).success).toBe(false)
+  })
+})
+
+describe("memory.recall.chunking", () => {
+  test("#given no recall block #when parsed #then chunking is off", () => {
+    expect(OmoMemorySettingsSchema.parse({}).recall.chunking).toBe(false)
+  })
+
+  test("#given chunking enabled at the root and for one agent #when parsed #then both values are kept", () => {
+    // given
+    const input = { recall: { chunking: true }, agents: { research: { recall: { chunking: false } } } }
+
+    // when
+    const parsed = OmoMemorySettingsSchema.parse(input)
+
+    // then
+    expect(parsed.recall.chunking).toBe(true)
+    expect(parsed.agents.research?.recall).toEqual({ chunking: false })
+  })
+
+  test("#given a chunking value that is not a boolean #when parsed #then validation fails", () => {
+    const recall = { chunking: "on" }
     expect(OmoMemorySettingsSchema.safeParse({ recall }).success).toBe(false)
     expect(OmoMemoryRecallLayerSchema.safeParse(recall).success).toBe(false)
     expect(OmoMemorySettingsLayerSchema.safeParse({ recall }).success).toBe(false)
