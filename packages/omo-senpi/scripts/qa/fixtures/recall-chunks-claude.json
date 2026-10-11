@@ -1,0 +1,1752 @@
+{
+  "version": 1,
+  "author": "Claude",
+  "model": "Claude Sonnet 5.5 (claude-sonnet-5-5)",
+  "revision": "9c7839deb5dc4d7ee18a34a801f19e04ebe8a963",
+  "manifest": "recall-chunks-manifest.json",
+  "authoredOn": "2026-10-11",
+  "frozen": true,
+  "notes": "Independently authored; no retrieval, benchmark, other-author questions or existing fixture queries were read or run. Expansions are plausible author-intent terms written before any retrieval. Before joint freezing, the orchestrator exchanged same-slice practice/evaluation assignments to remove cross-author fact overlap; question text, gold and expansions were unchanged. IDs retain their original author-assigned split labels. Three initially incorrect manifest paths were corrected to docs/guide before freezing.",
+  "counts": {
+    "practice": 16,
+    "evaluation": 48,
+    "perSlice": {
+      "practice": 4,
+      "evaluation": 12
+    }
+  },
+  "questions": [
+    {
+      "id": "claude-practice-en-01",
+      "split": "practice",
+      "slice": "en",
+      "query": "How many background monitors can a single session run at once by default?",
+      "gold": [
+        "public/docs/reference/monitor.md"
+      ],
+      "evidence": "Maximum active monitors for one parent session.",
+      "expansions": {
+        "synonyms": [
+          "concurrent watchers",
+          "simultaneous background monitors"
+        ],
+        "keywords": [
+          "monitor limit",
+          "동시 모니터 수"
+        ],
+        "related": [
+          "session cap",
+          "background command",
+          "long-running observation"
+        ],
+        "noteLine": "Limit on how many monitors a parent session may keep active."
+      }
+    },
+    {
+      "id": "claude-practice-en-02",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "How much of the main chat history does a side question get to see?",
+      "gold": [
+        "public/docs/guide/btw.md"
+      ],
+      "evidence": "capped at 64 messages and 64 KiB",
+      "expansions": {
+        "synonyms": [
+          "side chat",
+          "aside conversation",
+          "side thread"
+        ],
+        "keywords": [
+          "BTW 사이드 대화",
+          "컨텍스트 상한"
+        ],
+        "related": [
+          "read-only background",
+          "message boundary",
+          "main conversation context"
+        ],
+        "noteLine": "The side session receives recent main-conversation context as read-only background with a size limit."
+      }
+    },
+    {
+      "id": "claude-practice-en-03",
+      "split": "practice",
+      "slice": "en",
+      "query": "What is the oldest OpenCode version the doctor command accepts?",
+      "gold": [
+        "public/docs/reference/cli.md"
+      ],
+      "evidence": "The current minimum OpenCode version check is `>= 1.4.0`.",
+      "expansions": {
+        "synonyms": [
+          "minimum supported OpenCode release",
+          "lowest OpenCode version",
+          "required version floor"
+        ],
+        "keywords": [
+          "최소 OpenCode 버전",
+          "doctor 환경 점검"
+        ],
+        "related": [
+          "legacy plugin registration",
+          "system diagnostics",
+          "version check"
+        ],
+        "noteLine": "The doctor command verifies the installed OpenCode meets a minimum version."
+      }
+    },
+    {
+      "id": "claude-practice-en-04",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "How do I keep tmux from killing a similarly named session when I target one by name?",
+      "gold": [
+        "reference/tools/tmux-rules.md"
+      ],
+      "evidence": "Always target tmux sessions with an exact match: `tmux kill-session -t =build`.",
+      "expansions": {
+        "synonyms": [
+          "exact session name",
+          "avoid prefix matching",
+          "precise session target"
+        ],
+        "keywords": [
+          "tmux 세션 정확히 일치",
+          "세션 이름 접두사"
+        ],
+        "related": [
+          "kill-session",
+          "session targeting",
+          "similarly named sessions"
+        ],
+        "noteLine": "Rules for targeting tmux sessions safely when names share a prefix."
+      }
+    },
+    {
+      "id": "claude-practice-ko-01",
+      "split": "practice",
+      "slice": "ko",
+      "query": "dream 정리 작업은 세션이 몇 분 동안 놀고 있어야 시작될 수 있어?",
+      "gold": [
+        "public/docs/reference/configuration.md"
+      ],
+      "evidence": "Idle minutes before a dream may start",
+      "expansions": {
+        "synonyms": [
+          "유휴 시간",
+          "대기 분",
+          "idle minutes"
+        ],
+        "keywords": [
+          "dream idle",
+          "memory consolidation idle"
+        ],
+        "related": [
+          "메모리 통합",
+          "min_hours_between",
+          "dream 활성화"
+        ],
+        "noteLine": "dream 패스는 세션이 일정 시간 유휴 상태일 때 시작될 수 있다."
+      }
+    },
+    {
+      "id": "claude-practice-ko-02",
+      "split": "practice",
+      "slice": "ko",
+      "query": "omo daemon adopt를 호스트가 거부하면 종료 코드가 몇 번이야?",
+      "gold": [
+        "public/docs/reference/omo-daemon.md"
+      ],
+      "evidence": "`adopt`: the host refused the hand-over (`turn_active`, `attached`, `session_busy`, ...)",
+      "expansions": {
+        "synonyms": [
+          "종료 코드",
+          "exit status",
+          "반환 코드"
+        ],
+        "keywords": [
+          "adopt exit code",
+          "hand-over refused"
+        ],
+        "related": [
+          "세션 인계",
+          "turn_active",
+          "session_busy"
+        ],
+        "noteLine": "daemon adopt가 호스트에게 거절당했을 때의 종료 코드 표."
+      }
+    },
+    {
+      "id": "claude-practice-ko-03",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "블로그 글 제목은 몇 자 안으로 써야 해?",
+      "gold": [
+        "reference/ko/블로그-규칙.md"
+      ],
+      "evidence": "블로그 글 제목은 40자 이내로 쓴다.",
+      "expansions": {
+        "synonyms": [
+          "제목 길이",
+          "글자 수 제한"
+        ],
+        "keywords": [
+          "blog post title length",
+          "title character limit"
+        ],
+        "related": [
+          "블로그 작성 규칙",
+          "코드 예제",
+          "게시판 이미지"
+        ],
+        "noteLine": "블로그 글을 쓸 때 제목은 정해진 글자 수를 넘기지 않는다."
+      }
+    },
+    {
+      "id": "claude-practice-ko-04",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "클라우드 빌드 크레딧이 바닥나면 어떻게 대응해?",
+      "gold": [
+        "reference/ko/크레딧.md"
+      ],
+      "evidence": "클라우드 빌드 크레딧이 떨어지면 야간 빌드를 멈추고 수동 빌드만 돌린다.",
+      "expansions": {
+        "synonyms": [
+          "빌드 크레딧 소진",
+          "크레딧 부족"
+        ],
+        "keywords": [
+          "cloud build credits exhausted",
+          "nightly build"
+        ],
+        "related": [
+          "야간 빌드",
+          "수동 빌드",
+          "충전 담당"
+        ],
+        "noteLine": "클라우드 빌드 크레딧이 소진되었을 때의 대응 절차."
+      }
+    },
+    {
+      "id": "claude-practice-mixed-01",
+      "split": "practice",
+      "slice": "mixed",
+      "query": "team mode에서 동시에 도는 member는 기본으로 몇 명까지야?",
+      "gold": [
+        "public/docs/guide/team-mode.md",
+        "public/docs/reference/omo-json.md"
+      ],
+      "evidence": "- `max_parallel_members` (int, `1..8`, default `4`)",
+      "expansions": {
+        "synonyms": [
+          "parallel members",
+          "동시 실행 인원",
+          "in flight"
+        ],
+        "keywords": [
+          "team_mode 설정",
+          "팀 멤버 병렬 수"
+        ],
+        "related": [
+          "max_members",
+          "team_create",
+          "bounds defaults"
+        ],
+        "noteLine": "team mode config: max parallel members default and allowed range."
+      }
+    },
+    {
+      "id": "claude-practice-mixed-02",
+      "split": "practice",
+      "slice": "mixed",
+      "query": "ulw-plan에서 plan-reviewer round는 최대 몇 번까지 허용돼?",
+      "gold": [
+        "public/docs/guide/orchestration.md"
+      ],
+      "evidence": "Rounds are capped at 5 unless you ask for more.",
+      "expansions": {
+        "synonyms": [
+          "review rounds limit",
+          "리뷰 라운드 상한",
+          "reviewer passes"
+        ],
+        "keywords": [
+          "high-accuracy review",
+          "계획 검토 횟수"
+        ],
+        "related": [
+          "plan-reviewer",
+          "REJECT and resubmit",
+          "ulw-plan"
+        ],
+        "noteLine": "High-accuracy review rounds are capped unless more are requested."
+      }
+    },
+    {
+      "id": "claude-practice-mixed-03",
+      "split": "practice",
+      "slice": "mixed",
+      "query": "Dana한테 weekly update 보낼 때 어떤 형식으로 맞춰야 해?",
+      "gold": [
+        "people/dana/preferences.md"
+      ],
+      "evidence": "Dana wants weekly status updates on Friday with the release date first and timestamps in UTC.",
+      "expansions": {
+        "synonyms": [
+          "status report format",
+          "주간 보고 양식"
+        ],
+        "keywords": [
+          "Dana 소통 선호",
+          "weekly status update"
+        ],
+        "related": [
+          "요일",
+          "timestamp",
+          "table over prose"
+        ],
+        "noteLine": "Dana's preferences for how and when she receives weekly updates."
+      }
+    },
+    {
+      "id": "claude-practice-mixed-04",
+      "split": "practice",
+      "slice": "mixed",
+      "query": "production DB 풀 백업 보관 기간이 며칠이야?",
+      "gold": [
+        "reference/zh/数据库备份.md"
+      ],
+      "evidence": "备份文件保留三十天",
+      "expansions": {
+        "synonyms": [
+          "backup retention",
+          "보관 일수",
+          "保留期"
+        ],
+        "keywords": [
+          "数据库备份",
+          "生产数据库全量备份"
+        ],
+        "related": [
+          "恢复演练",
+          "凌晨备份",
+          "nightly full backup"
+        ],
+        "noteLine": "生产数据库备份策略：备份文件的保留时间。"
+      }
+    },
+    {
+      "id": "claude-practice-paraphrase-01",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "Why does an executable saved through a web browser get blocked by Apple's security on first launch, while one fetched on the command line does not?",
+      "gold": [
+        "public/docs/guide/binary-install.md"
+      ],
+      "evidence": "A binary downloaded through a web browser carries the `com.apple.quarantine` attribute and macOS Gatekeeper will suspend it on first run.",
+      "expansions": {
+        "synonyms": [
+          "Gatekeeper block",
+          "unsigned executable warning",
+          "download quarantine flag"
+        ],
+        "keywords": [
+          "macOS 격리 속성",
+          "브라우저 다운로드 차단"
+        ],
+        "related": [
+          "unsigned binaries",
+          "first run prompt",
+          "curl download"
+        ],
+        "noteLine": "Why browser downloads trigger the macOS security prompt but curl downloads avoid it."
+      }
+    },
+    {
+      "id": "claude-practice-paraphrase-02",
+      "split": "practice",
+      "slice": "paraphrase",
+      "query": "How long does a finished delegated helper stay loaded in memory when nobody talks to it before it gets set aside?",
+      "gold": [
+        "public/docs/guide/senpi-task.md"
+      ],
+      "evidence": "It defaults to **900000 ms (15 minutes)**",
+      "expansions": {
+        "synonyms": [
+          "inactive child retention",
+          "idle parking timeout",
+          "resident idle period"
+        ],
+        "keywords": [
+          "자식 에이전트 유휴 보관 시간",
+          "대기 후 파킹"
+        ],
+        "related": [
+          "revival on message",
+          "persisted_only",
+          "idle sweep"
+        ],
+        "noteLine": "How long an idle finished child remains resident before it is parked."
+      }
+    },
+    {
+      "id": "claude-practice-paraphrase-03",
+      "split": "practice",
+      "slice": "paraphrase",
+      "query": "What did we change so the outage page's domain registration won't lapse unnoticed again?",
+      "gold": [
+        "notes/incidents/2026-09-dns.md"
+      ],
+      "evidence": "renewal is now automated with a 30-day reminder.",
+      "expansions": {
+        "synonyms": [
+          "automatic renewal",
+          "expiry reminder",
+          "prevent lapse"
+        ],
+        "keywords": [
+          "상태 페이지 도메인 만료",
+          "갱신 자동화"
+        ],
+        "related": [
+          "name record",
+          "status site outage",
+          "renewal notice"
+        ],
+        "noteLine": "Postmortem of an expired record for the status site and the prevention step."
+      }
+    },
+    {
+      "id": "claude-practice-paraphrase-04",
+      "split": "practice",
+      "slice": "paraphrase",
+      "query": "Which of my laptop's data is intentionally left out of the nightly archive, and why?",
+      "gold": [
+        "reference/tools/backup.md"
+      ],
+      "evidence": "Photos are excluded because they already sync to the photo service.",
+      "expansions": {
+        "synonyms": [
+          "backup exclusions",
+          "omitted from backups",
+          "not archived"
+        ],
+        "keywords": [
+          "노트북 백업 제외 대상",
+          "백업 루틴"
+        ],
+        "related": [
+          "object storage",
+          "restic",
+          "weekly verification"
+        ],
+        "noteLine": "Laptop backup routine including what is not backed up."
+      }
+    },
+    {
+      "id": "claude-eval-en-01",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "What happens when a monitor is asked to start in live_safe mode while live mode is switched off?",
+      "gold": [
+        "public/docs/reference/monitor.md"
+      ],
+      "evidence": "Monitor starts the command in `idle` mode and returns a note about the downgrade.",
+      "expansions": {
+        "synonyms": [
+          "falls back",
+          "downgrade to idle",
+          "mode fallback"
+        ],
+        "keywords": [
+          "live 모드 비활성",
+          "모니터 모드 강등"
+        ],
+        "related": [
+          "injection modes",
+          "monitor_start",
+          "live_mode_enabled"
+        ],
+        "noteLine": "If live_safe is requested but live mode is disabled, the monitor falls back to a default mode with a note."
+      }
+    },
+    {
+      "id": "claude-eval-en-02",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "How long are finished task records and their artifacts kept by default?",
+      "gold": [
+        "public/docs/guide/senpi-task.md",
+        "public/docs/reference/omo-json.md"
+      ],
+      "evidence": "`task.ttl_ms` (record and artifact retention, default 86400000 ms)",
+      "expansions": {
+        "synonyms": [
+          "retention period",
+          "record expiry",
+          "artifact lifetime"
+        ],
+        "keywords": [
+          "작업 기록 보존 기간",
+          "TTL"
+        ],
+        "related": [
+          "task_output readable",
+          "resume_children",
+          "cleanup of old records"
+        ],
+        "noteLine": "Settings controlling how long task records and artifacts are retained."
+      }
+    },
+    {
+      "id": "claude-eval-en-03",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "Can a team member's separate git checkout be specified as just a branch name?",
+      "gold": [
+        "public/docs/guide/team-mode.md"
+      ],
+      "evidence": "Path is filesystem-relative or absolute; bare branch names are rejected.",
+      "expansions": {
+        "synonyms": [
+          "member worktree",
+          "separate checkout path",
+          "git worktree for a member"
+        ],
+        "keywords": [
+          "팀 멤버 워크트리",
+          "브랜치 이름만 지정"
+        ],
+        "related": [
+          "worktreePath",
+          "requires git",
+          "team member entry"
+        ],
+        "noteLine": "Optional per-member worktree: how the path must be written."
+      }
+    },
+    {
+      "id": "claude-eval-en-04",
+      "split": "practice",
+      "slice": "en",
+      "query": "What exit status does the run command return if it is aborted?",
+      "gold": [
+        "public/docs/reference/cli.md"
+      ],
+      "evidence": "- `130` when `run` is aborted",
+      "expansions": {
+        "synonyms": [
+          "exit code",
+          "return value",
+          "status on abort"
+        ],
+        "keywords": [
+          "run 중단 종료 코드",
+          "비정상 종료 코드"
+        ],
+        "related": [
+          "boulder state",
+          "explicit numeric exit codes",
+          "interrupt"
+        ],
+        "noteLine": "Exit codes: success, failure, unreadable state file, and aborted run."
+      }
+    },
+    {
+      "id": "claude-eval-en-05",
+      "split": "practice",
+      "slice": "en",
+      "query": "How many categories of credential-looking text does the memory scanner recognise?",
+      "gold": [
+        "public/docs/reference/configuration.md"
+      ],
+      "evidence": "One scanner covers seven pattern classes",
+      "expansions": {
+        "synonyms": [
+          "secret detection",
+          "credential patterns",
+          "token screening"
+        ],
+        "keywords": [
+          "시크릿 스크리닝",
+          "비밀 정보 패턴 종류"
+        ],
+        "related": [
+          "AWS access keys",
+          "PEM private key",
+          "bearer headers"
+        ],
+        "noteLine": "Memory never stores or shows secret-like text; the scanner covers several pattern classes."
+      }
+    },
+    {
+      "id": "claude-eval-en-06",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "While executing a saved plan, how many times in a row will an idle turn be re-injected automatically?",
+      "gold": [
+        "public/docs/guide/orchestration.md"
+      ],
+      "evidence": "up to 8 consecutive continuations",
+      "expansions": {
+        "synonyms": [
+          "automatic continuation limit",
+          "idle re-injection cap",
+          "repeat prompts"
+        ],
+        "keywords": [
+          "연속 이어하기 횟수",
+          "계획 실행 재개"
+        ],
+        "related": [
+          "boulder.json",
+          "unchecked top-level boxes",
+          "steering reminder"
+        ],
+        "noteLine": "Continuation component re-injects an idle turn while plan work remains unchecked."
+      }
+    },
+    {
+      "id": "claude-eval-en-07",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "When does a session's own task host get warmed up by default?",
+      "gold": [
+        "public/docs/reference/omo-daemon.md"
+      ],
+      "evidence": "- `first-turn` (default): on the session's first prompt",
+      "expansions": {
+        "synonyms": [
+          "pre-warm timing",
+          "host warm-up trigger",
+          "when the host boots"
+        ],
+        "keywords": [
+          "호스트 사전 예열 시점",
+          "첫 프롬프트"
+        ],
+        "related": [
+          "host_shard_prewarm",
+          "session-start",
+          "off"
+        ],
+        "noteLine": "task.host_shard_prewarm picks when the session's derived task host is warmed."
+      }
+    },
+    {
+      "id": "claude-eval-en-08",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "What must the Lighthouse health check return before a promotion is allowed?",
+      "gold": [
+        "reference/projects/lighthouse-deploy.md"
+      ],
+      "evidence": "The health endpoint is /healthz and must return 200 before promotion.",
+      "expansions": {
+        "synonyms": [
+          "readiness probe",
+          "status endpoint",
+          "go-live gate"
+        ],
+        "keywords": [
+          "라이트하우스 헬스체크",
+          "프로모션 전 확인"
+        ],
+        "related": [
+          "blue-green",
+          "canary",
+          "make promote"
+        ],
+        "noteLine": "Lighthouse deployment runbook with promotion prerequisites."
+      }
+    },
+    {
+      "id": "claude-eval-en-09",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "Where does the Pebble registry publish token live?",
+      "gold": [
+        "reference/projects/pebble-cli.md"
+      ],
+      "evidence": "The publish token lives in the CI secret store under PEBBLE_PUBLISH",
+      "expansions": {
+        "synonyms": [
+          "package registry credential",
+          "release token location",
+          "secret storage"
+        ],
+        "keywords": [
+          "Pebble 퍼블리시 토큰",
+          "CI 시크릿"
+        ],
+        "related": [
+          "two-factor auth",
+          "pebble release minor",
+          "local publishing disabled"
+        ],
+        "noteLine": "Notes about how Pebble is published to the package registry."
+      }
+    },
+    {
+      "id": "claude-eval-en-10",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "In a stack of pull requests, what do I do to the child PRs before removing the parent branch?",
+      "gold": [
+        "notes/decisions/merge-policy.md"
+      ],
+      "evidence": "Stacked PRs: retarget children to main before deleting the parent branch.",
+      "expansions": {
+        "synonyms": [
+          "chained PRs",
+          "dependent pull requests",
+          "branch stack"
+        ],
+        "keywords": [
+          "스택 PR 정리",
+          "부모 브랜치 삭제 전"
+        ],
+        "related": [
+          "retarget",
+          "maintainer merges",
+          "CI green"
+        ],
+        "noteLine": "Pull request merge policy including stacked PRs."
+      }
+    },
+    {
+      "id": "claude-eval-en-11",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "At what time is the newsletter sent each week?",
+      "gold": [
+        "reference/projects/newsletter.md"
+      ],
+      "evidence": "sent every Monday at 07:00 KST",
+      "expansions": {
+        "synonyms": [
+          "mailing schedule",
+          "send time",
+          "weekly issue"
+        ],
+        "keywords": [
+          "뉴스레터 발송 시각",
+          "월요일 아침"
+        ],
+        "related": [
+          "static site generator",
+          "markdown draft",
+          "KST"
+        ],
+        "noteLine": "Newsletter workflow: authoring format and weekly send time."
+      }
+    },
+    {
+      "id": "claude-eval-en-12",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "Which kinds of work are assigned to the large model?",
+      "gold": [
+        "notes/decisions/model-routing.md"
+      ],
+      "evidence": "code review and release gates run on the large model",
+      "expansions": {
+        "synonyms": [
+          "big model",
+          "heavy model",
+          "expensive model"
+        ],
+        "keywords": [
+          "대형 모델 라우팅",
+          "모델 선택 기준"
+        ],
+        "related": [
+          "small model batch jobs",
+          "quarterly budget review",
+          "summarization"
+        ],
+        "noteLine": "Decision on which jobs run on the small versus large model."
+      }
+    },
+    {
+      "id": "claude-eval-ko-01",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "bun으로 설치한 omo를 지우려면 어떤 명령을 써?",
+      "gold": [
+        "public/README.ko.md",
+        "public/README.md",
+        "public/README.ja.md",
+        "public/README.zh-cn.md"
+      ],
+      "evidence": "제거는 `bun remove -g omo-ai`(npm으로 깔았다면 `npm uninstall -g omo-ai`)입니다.",
+      "expansions": {
+        "synonyms": [
+          "삭제",
+          "언인스톨",
+          "제거 방법"
+        ],
+        "keywords": [
+          "uninstall omo",
+          "remove global package"
+        ],
+        "related": [
+          "omo-ai 패키지",
+          "omo update",
+          "npm uninstall"
+        ],
+        "noteLine": "업데이트와 제거 방법 안내."
+      }
+    },
+    {
+      "id": "claude-eval-ko-02",
+      "split": "practice",
+      "slice": "ko",
+      "query": "Kibitzer 사이드카가 한 머신에서 동시에 깨어날 수 있는 최대 횟수 기본값은?",
+      "gold": [
+        "public/docs/reference/configuration.md",
+        "public/docs/reference/omo-json.md"
+      ],
+      "evidence": "Machine-wide cap on wakes running at once",
+      "expansions": {
+        "synonyms": [
+          "동시 wake 상한",
+          "병렬 실행 제한",
+          "동시 판단 수"
+        ],
+        "keywords": [
+          "recall concurrent wakes",
+          "sidecar concurrency"
+        ],
+        "related": [
+          "tool_budget",
+          "lease lock files",
+          "sidecar_max_tokens"
+        ],
+        "noteLine": "recall 옵션 표: 머신 전체에서 동시에 실행되는 wake 수의 상한."
+      }
+    },
+    {
+      "id": "claude-eval-ko-03",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "커밋 본문에 omo 푸터를 넣고 싶으면 어느 옵션을 켜야 해?",
+      "gold": [
+        "public/docs/reference/omo-json.md",
+        "public/docs/reference/configuration.md"
+      ],
+      "evidence": "Opt in to the \"Ultraworked with [omo](https://github.com/code-yeongyu/oh-my-openagent)\" footer in the commit body.",
+      "expansions": {
+        "synonyms": [
+          "커밋 푸터",
+          "커밋 메시지 서명",
+          "푸터 문구"
+        ],
+        "keywords": [
+          "git_master commit footer",
+          "commit attribution"
+        ],
+        "related": [
+          "Co-authored-by",
+          "git-master 스킬",
+          "include_co_authored_by"
+        ],
+        "noteLine": "git_master 블록: 커밋 푸터를 켜는 필드와 기본값."
+      }
+    },
+    {
+      "id": "claude-eval-ko-04",
+      "split": "practice",
+      "slice": "ko",
+      "query": "Windows ARM64용 omo 바이너리는 에뮬레이션으로 돌아가, 아니면 네이티브야?",
+      "gold": [
+        "public/docs/guide/binary-install.md"
+      ],
+      "evidence": "**Windows ARM64 is a true ARM64 binary.**",
+      "expansions": {
+        "synonyms": [
+          "윈도우 ARM64",
+          "네이티브 빌드",
+          "x64 에뮬레이션"
+        ],
+        "keywords": [
+          "Windows ARM64 native binary",
+          "emulation"
+        ],
+        "related": [
+          "omo-windows-arm64.exe",
+          "플랫폼 타깃",
+          "baseline"
+        ],
+        "noteLine": "Notes and limits for the compiled binary on Windows ARM64."
+      }
+    },
+    {
+      "id": "claude-eval-ko-05",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "/task-kill 선택창에는 어떤 상태의 작업이 뜨니?",
+      "gold": [
+        "public/docs/guide/senpi-task.md"
+      ],
+      "evidence": "**`/task-kill`** opens a selector over cancellable tasks (running / pending / interrupted) and cancels the chosen one after a confirm.",
+      "expansions": {
+        "synonyms": [
+          "작업 취소 선택기",
+          "취소 가능한 작업",
+          "태스크 종료 명령"
+        ],
+        "keywords": [
+          "task kill selector",
+          "cancellable tasks"
+        ],
+        "related": [
+          "/tasks --all",
+          "확인 후 취소",
+          "상태 위젯"
+        ],
+        "noteLine": "/tasks와 /task-kill 슬래시 명령 설명."
+      }
+    },
+    {
+      "id": "claude-eval-ko-06",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "모니터 출력이 한 번에 주입될 때 최대 몇 줄까지 묶여?",
+      "gold": [
+        "public/docs/reference/monitor.md"
+      ],
+      "evidence": "Maximum lines included in one injected output batch.",
+      "expansions": {
+        "synonyms": [
+          "배치 줄 수 제한",
+          "한 번에 주입되는 줄",
+          "출력 묶음 크기"
+        ],
+        "keywords": [
+          "monitor batch lines",
+          "injected output batch"
+        ],
+        "related": [
+          "batch_max_bytes",
+          "flush_interval_ms",
+          "ring buffer"
+        ],
+        "noteLine": "Monitor 설정 표: 한 배치에 포함되는 최대 줄 수."
+      }
+    },
+    {
+      "id": "claude-eval-ko-07",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "팀 모드에서 메시지 하나의 본문 크기 한도가 얼마야?",
+      "gold": [
+        "public/docs/guide/team-mode.md"
+      ],
+      "evidence": "- 32 KB per message body, 256 KB per recipient unread.",
+      "expansions": {
+        "synonyms": [
+          "메시지 크기 상한",
+          "본문 최대 바이트",
+          "payload 제한"
+        ],
+        "keywords": [
+          "team mode message size limit",
+          "per message body"
+        ],
+        "related": [
+          "recipient unread",
+          "mailbox",
+          "bounds defaults"
+        ],
+        "noteLine": "팀 모드 기본 한도: 메시지 본문과 수신자 미읽음 크기."
+      }
+    },
+    {
+      "id": "claude-eval-ko-08",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "받아쓰기 엔진에 넣기 전에 회의 녹음을 어떤 형식으로 바꿔야 해?",
+      "gold": [
+        "reference/ko/회의-받아쓰기.md"
+      ],
+      "evidence": "44kHz 스테레오 녹음을 16kHz 모노 wav로 먼저 변환한다.",
+      "expansions": {
+        "synonyms": [
+          "녹음 변환",
+          "음성 전처리",
+          "오디오 포맷"
+        ],
+        "keywords": [
+          "meeting transcription audio format",
+          "speech-to-text preprocessing"
+        ],
+        "related": [
+          "로컬 받아쓰기 엔진",
+          "모델 크기",
+          "샘플링 레이트"
+        ],
+        "noteLine": "회의 녹음을 텍스트로 바꾸기 전에 오디오를 변환하는 설정."
+      }
+    },
+    {
+      "id": "claude-eval-ko-09",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "답변 맨 아래에 꼭 붙여야 하는 게 뭐였지?",
+      "gold": [
+        "reference/ko/답변-서명.md"
+      ],
+      "evidence": "모든 답변 끝에 팀 이름과 작성 날짜를 짧게 표시한다.",
+      "expansions": {
+        "synonyms": [
+          "답변 끝 표기",
+          "서명 규칙",
+          "꼬리말"
+        ],
+        "keywords": [
+          "reply signature",
+          "footer format"
+        ],
+        "related": [
+          "팀 이름",
+          "작성 날짜",
+          "괄호 형식"
+        ],
+        "noteLine": "모든 답변 끝에 표시하는 서명 규칙."
+      }
+    },
+    {
+      "id": "claude-eval-ko-10",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "월요일 오전 아홉 시에 해야 하는 루틴이 뭐야?",
+      "gold": [
+        "reference/ko/스프린트-일정.md"
+      ],
+      "evidence": "매주 월요일 아홉 시에 스프린트 보드를 보고 이번 주 할 일을 캘린더에 올린다.",
+      "expansions": {
+        "synonyms": [
+          "주간 루틴",
+          "월요일 아침 일정",
+          "스프린트 시작"
+        ],
+        "keywords": [
+          "Monday sprint routine",
+          "weekly planning"
+        ],
+        "related": [
+          "스프린트 보드",
+          "캘린더",
+          "다른 팀 일정"
+        ],
+        "noteLine": "주간 스프린트 일정 점검 방법."
+      }
+    },
+    {
+      "id": "claude-eval-ko-11",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "리눅스 서버를 재부팅해도 SSH가 다시 살아나게 어떻게 해놨어?",
+      "gold": [
+        "reference/ko/원격-서버.md"
+      ],
+      "evidence": "재부팅 후 SSH 서버가 자동으로 켜지도록 서비스로 등록했다.",
+      "expansions": {
+        "synonyms": [
+          "자동 시작",
+          "재부팅 후 복구",
+          "서비스 등록"
+        ],
+        "keywords": [
+          "remote linux server ssh autostart",
+          "systemd service"
+        ],
+        "related": [
+          "메시 VPN",
+          "메모리 상한",
+          "원격 접속"
+        ],
+        "noteLine": "사내 리눅스 서버 접속과 재부팅 후 설정."
+      }
+    },
+    {
+      "id": "claude-eval-ko-12",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "노트북 디스크가 꽉 찼던 원인이 뭐였지?",
+      "gold": [
+        "reference/ko/디스크-정리.md"
+      ],
+      "evidence": "디스크 용량이 커진 원인은 오래된 컨테이너 이미지 캐시였다.",
+      "expansions": {
+        "synonyms": [
+          "저장 공간 부족",
+          "디스크 사용량 증가",
+          "용량 정리"
+        ],
+        "keywords": [
+          "laptop disk cleanup root cause",
+          "container image cache"
+        ],
+        "related": [
+          "오래된 이미지 삭제",
+          "디스크 정리 기록",
+          "캐시"
+        ],
+        "noteLine": "노트북 디스크 용량 문제의 원인과 정리 기록."
+      }
+    },
+    {
+      "id": "claude-eval-mixed-01",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "recall sidecar가 한 번 wake할 때 tool call을 몇 번까지 쓸 수 있어?",
+      "gold": [
+        "public/docs/reference/configuration.md",
+        "public/docs/reference/omo-json.md"
+      ],
+      "evidence": "Read-only tool calls one wake may make before it is cut off",
+      "expansions": {
+        "synonyms": [
+          "tool 호출 예산",
+          "wake당 호출 횟수",
+          "call budget"
+        ],
+        "keywords": [
+          "recall tool budget",
+          "Kibitzer wake limit"
+        ],
+        "related": [
+          "90 seconds",
+          "read-only tools",
+          "sidecar"
+        ],
+        "noteLine": "Recall 옵션: wake 한 번에 허용되는 읽기 전용 tool 호출 수."
+      }
+    },
+    {
+      "id": "claude-eval-mixed-02",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "task max_depth 기본값이 얼마였지?",
+      "gold": [
+        "public/docs/reference/omo-json.md"
+      ],
+      "evidence": "| `max_depth` | int >= 0 | `1` |",
+      "expansions": {
+        "synonyms": [
+          "nesting depth",
+          "재귀 깊이",
+          "delegation depth"
+        ],
+        "keywords": [
+          "task depth limit",
+          "자식 작업 깊이"
+        ],
+        "related": [
+          "default_concurrency",
+          "residency_max_children",
+          "task 설정 표"
+        ],
+        "noteLine": "task engine settings table with depth and concurrency defaults."
+      }
+    },
+    {
+      "id": "claude-eval-mixed-03",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "omo run 끝나고 shell command를 자동으로 실행하는 option이 뭐야?",
+      "gold": [
+        "public/docs/reference/cli.md"
+      ],
+      "evidence": "| `--on-complete <command>` | Run shell command after completion |",
+      "expansions": {
+        "synonyms": [
+          "완료 후 훅",
+          "post-run command",
+          "종료 후 실행"
+        ],
+        "keywords": [
+          "run on-complete flag",
+          "run 옵션"
+        ],
+        "related": [
+          "--json",
+          "--session-id",
+          "non-interactive session"
+        ],
+        "noteLine": "run 명령 옵션 표."
+      }
+    },
+    {
+      "id": "claude-eval-mixed-04",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "explore나 librarian agent를 Opus로 돌리면 왜 안 좋다고 했지?",
+      "gold": [
+        "public/docs/guide/agent-model-matching.md"
+      ],
+      "evidence": "**`explore` / `librarian` on Opus or Fable.** Massive cost waste.",
+      "expansions": {
+        "synonyms": [
+          "검색 에이전트 모델",
+          "비용 낭비",
+          "search lane model choice"
+        ],
+        "keywords": [
+          "risky overrides",
+          "premium model waste"
+        ],
+        "related": [
+          "plan-reviewer small model",
+          "safe overrides",
+          "speed over intelligence"
+        ],
+        "noteLine": "Risky overrides: using premium models for search agents wastes cost."
+      }
+    },
+    {
+      "id": "claude-eval-mixed-05",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "/goal pause랑 clear는 뭐가 달라?",
+      "gold": [
+        "public/docs/reference/features.md"
+      ],
+      "evidence": "`pause` stops idle continuations without clearing the goal; `clear` removes it.",
+      "expansions": {
+        "synonyms": [
+          "일시정지와 삭제",
+          "goal 상태 제어",
+          "persistent objective"
+        ],
+        "keywords": [
+          "goal pause vs clear",
+          "thread objective"
+        ],
+        "related": [
+          "resume",
+          "update_goal",
+          "session.idle continuation"
+        ],
+        "noteLine": "/goal 동작: pause stops continuations, clear removes the goal."
+      }
+    },
+    {
+      "id": "claude-eval-mixed-06",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "binary 처음 실행하면 runtime이 어디에 풀려?",
+      "gold": [
+        "public/docs/guide/binary-install.md"
+      ],
+      "evidence": "On first run the binary writes its runtime to `~/.omo/binary-runtime/<version>/`",
+      "expansions": {
+        "synonyms": [
+          "self-provisioning",
+          "런타임 압축 해제 위치",
+          "첫 실행 설치"
+        ],
+        "keywords": [
+          "compiled omo first run",
+          "provisioned copy"
+        ],
+        "related": [
+          "engine plugin PTY prebuild",
+          "re-executes",
+          "once per version"
+        ],
+        "noteLine": "First run: the binary provisions its runtime into a per-version directory."
+      }
+    },
+    {
+      "id": "claude-eval-mixed-07",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "pre-warm이 Windows에서는 왜 안 돌아?",
+      "gold": [
+        "public/docs/reference/omo-daemon.md"
+      ],
+      "evidence": "It does not run on Windows: task children there run in-process or as their own processes, never on a task host",
+      "expansions": {
+        "synonyms": [
+          "윈도우 예열 미지원",
+          "platform limitation",
+          "warm-up skipped"
+        ],
+        "keywords": [
+          "task host prewarm windows",
+          "named-pipe host"
+        ],
+        "related": [
+          "POSIX host runner",
+          "Desktop threads",
+          "in-process children"
+        ],
+        "noteLine": "Pre-warm runs only for the POSIX host runner and not on Windows."
+      }
+    },
+    {
+      "id": "claude-eval-mixed-08",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "Lighthouse release tag 형식이 뭐였지?",
+      "gold": [
+        "reference/projects/lighthouse-release.md"
+      ],
+      "evidence": "Tags follow vYYYY.MM.patch.",
+      "expansions": {
+        "synonyms": [
+          "릴리스 태그",
+          "version tag naming",
+          "tag convention"
+        ],
+        "keywords": [
+          "라이트하우스 릴리스 체크리스트",
+          "release notes Thursday"
+        ],
+        "related": [
+          "signed changelog",
+          "e2e suite",
+          "security reviewer approval"
+        ],
+        "noteLine": "Lighthouse release checklist including the tag pattern."
+      }
+    },
+    {
+      "id": "claude-eval-mixed-09",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "payments service owner가 누구야?",
+      "gold": [
+        "people/minho/card.md"
+      ],
+      "evidence": "Minho owns the payments service and reviews every schema migration.",
+      "expansions": {
+        "synonyms": [
+          "결제 서비스 담당",
+          "service owner",
+          "backend 담당자"
+        ],
+        "keywords": [
+          "payments owner",
+          "schema migration reviewer"
+        ],
+        "related": [
+          "written RFCs",
+          "백엔드 엔지니어",
+          "meetings"
+        ],
+        "noteLine": "Backend engineer card with ownership and review duties."
+      }
+    },
+    {
+      "id": "claude-eval-mixed-10",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "CDN이 stale bundle 서빙한 건 어떻게 고쳤어?",
+      "gold": [
+        "notes/incidents/2026-08-cache.md"
+      ],
+      "evidence": "Fix: purge by tag instead of id.",
+      "expansions": {
+        "synonyms": [
+          "오래된 캐시",
+          "cache invalidation fix",
+          "purge 방식"
+        ],
+        "keywords": [
+          "August cache incident",
+          "stale bundles"
+        ],
+        "related": [
+          "distribution id",
+          "Lighthouse deploy",
+          "purge job"
+        ],
+        "noteLine": "Incident note: stale bundles served after deploy and the fix."
+      }
+    },
+    {
+      "id": "claude-eval-mixed-11",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "出張 경비 정산할 때 영수증 원본은 얼마나 보관해?",
+      "gold": [
+        "reference/ja/経費精算.md"
+      ],
+      "evidence": "領収書は写真で添付し、原本は三か月保管する。",
+      "expansions": {
+        "synonyms": [
+          "영수증 보관",
+          "expense receipt retention",
+          "経費精算"
+        ],
+        "keywords": [
+          "出張経費",
+          "精算システム"
+        ],
+        "related": [
+          "月末申請",
+          "写真添付",
+          "원본 보관 기간"
+        ],
+        "noteLine": "出張の経費精算ルール：領収書の扱いと保管。"
+      }
+    },
+    {
+      "id": "claude-eval-mixed-12",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "emergency alert는 몇 분 안에 응답해야 돼?",
+      "gold": [
+        "reference/zh/值班规则.md"
+      ],
+      "evidence": "紧急告警必须在十五分钟内响应。",
+      "expansions": {
+        "synonyms": [
+          "on-call response time",
+          "긴급 알림 응답",
+          "SLA"
+        ],
+        "keywords": [
+          "值班规则",
+          "紧急告警"
+        ],
+        "related": [
+          "每周轮换",
+          "周一上午交接",
+          "pager"
+        ],
+        "noteLine": "值班安排规则：轮换、交接和告警响应时限。"
+      }
+    },
+    {
+      "id": "claude-eval-paraphrase-01",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "If I switch the background-watcher feature on, does that by itself let it launch whatever program it wants?",
+      "gold": [
+        "public/docs/reference/monitor.md"
+      ],
+      "evidence": "`monitor.enabled: true` only registers the tools. It does not grant command execution by itself.",
+      "expansions": {
+        "synonyms": [
+          "permission gate",
+          "allowlist fallback",
+          "command approval"
+        ],
+        "keywords": [
+          "모니터 보안 모델",
+          "명령 실행 권한"
+        ],
+        "related": [
+          "Bash-equivalent permission",
+          "fails closed",
+          "program name check"
+        ],
+        "noteLine": "Security model: enabling the feature only registers tools; commands still pass a gate."
+      }
+    },
+    {
+      "id": "claude-eval-paraphrase-02",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "Why can't an ordinary big-job run summon the second-opinion plan agents?",
+      "gold": [
+        "public/docs/guide/orchestration.md"
+      ],
+      "evidence": "A bare `ulw` run never gets them, however big the work feels.",
+      "expansions": {
+        "synonyms": [
+          "plan gate",
+          "review agents locked",
+          "consultant restrictions"
+        ],
+        "keywords": [
+          "플랜 게이트",
+          "리뷰어 호출 조건"
+        ],
+        "related": [
+          "explicit planning request",
+          "notepad self-review",
+          "touched plan artifact"
+        ],
+        "noteLine": "Plan-gate rules: when plan-consultant and plan-reviewer may open."
+      }
+    },
+    {
+      "id": "claude-eval-paraphrase-03",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "Which installer switch hides the sign-in pointers?",
+      "gold": [
+        "public/docs/reference/cli.md"
+      ],
+      "evidence": "| `--skip-auth` | Skip authentication setup hints |",
+      "expansions": {
+        "synonyms": [
+          "skip login hints",
+          "no auth guidance",
+          "suppress credentials tips"
+        ],
+        "keywords": [
+          "인증 안내 건너뛰기",
+          "install 옵션"
+        ],
+        "related": [
+          "--no-tui",
+          "subscription flags",
+          "setup tool options"
+        ],
+        "noteLine": "install command options table."
+      }
+    },
+    {
+      "id": "claude-eval-paraphrase-04",
+      "split": "practice",
+      "slice": "paraphrase",
+      "query": "How long can the little reminder from the memory-watching side helper be?",
+      "gold": [
+        "public/docs/reference/configuration.md"
+      ],
+      "evidence": "The hint is one sentence of at most 200 characters",
+      "expansions": {
+        "synonyms": [
+          "advice length",
+          "hint size limit",
+          "recollection length"
+        ],
+        "keywords": [
+          "Kibitzer 힌트 길이",
+          "회상 메시지 글자 수"
+        ],
+        "related": [
+          "recalled memory notice",
+          "transcript entry",
+          "surfaces once per session"
+        ],
+        "noteLine": "A recollection shows a one-sentence hint with the memory path beneath it."
+      }
+    },
+    {
+      "id": "claude-eval-paraphrase-05",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "Which helper agents are barred from joining a multi-agent crew, and for what reason?",
+      "gold": [
+        "public/docs/guide/team-mode.md"
+      ],
+      "evidence": "The curated agents are read-only and in-process, so they can't write mailbox state.",
+      "expansions": {
+        "synonyms": [
+          "excluded members",
+          "ineligible agents",
+          "team membership rules"
+        ],
+        "keywords": [
+          "팀 멤버 자격",
+          "읽기 전용 에이전트 제외"
+        ],
+        "related": [
+          "explore librarian plan-reviewer",
+          "reviewer trio",
+          "route through task"
+        ],
+        "noteLine": "Who can be a member: eligible versus rejected at parse."
+      }
+    },
+    {
+      "id": "claude-eval-paraphrase-06",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "How do I leave an aside chat while keeping it around for later?",
+      "gold": [
+        "public/docs/guide/btw.md"
+      ],
+      "evidence": "| Return to Main without deletion | `Esc Esc` |",
+      "expansions": {
+        "synonyms": [
+          "go back to main",
+          "exit side conversation",
+          "keep the side"
+        ],
+        "keywords": [
+          "BTW 돌아가기 단축키",
+          "사이드 유지"
+        ],
+        "related": [
+          "Ctrl+C delete",
+          "picker",
+          "retained sessions"
+        ],
+        "noteLine": "BTW controls table: create, open picker, return, delete."
+      }
+    },
+    {
+      "id": "claude-eval-paraphrase-07",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "When a large job has many independent parts, how does the system decide which pieces start first?",
+      "gold": [
+        "public/docs/guide/workflows.md"
+      ],
+      "evidence": "It then runs the tasks in waves: everything that is ready runs at the same time, and each finished task unlocks the ones waiting on it.",
+      "expansions": {
+        "synonyms": [
+          "dependency ordering",
+          "parallel stages",
+          "ready tasks first"
+        ],
+        "keywords": [
+          "작업 의존성 순서",
+          "병렬 실행 단계"
+        ],
+        "related": [
+          "task graph",
+          "each waits for dependencies",
+          "agent per task"
+        ],
+        "noteLine": "What happens next: OmO breaks the job into tasks and runs them in waves."
+      }
+    },
+    {
+      "id": "claude-eval-paraphrase-08",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "What's the weekly ceiling on advertising posts per channel?",
+      "gold": [
+        "notes/decisions/promo-cadence.md"
+      ],
+      "evidence": "Promotion limits: at most two promotion posts per network per week",
+      "expansions": {
+        "synonyms": [
+          "marketing frequency cap",
+          "posting limit",
+          "outreach cadence"
+        ],
+        "keywords": [
+          "홍보 게시 한도",
+          "주간 홍보 횟수"
+        ],
+        "related": [
+          "blog and forum",
+          "weekly report Sunday",
+          "plain text"
+        ],
+        "noteLine": "Decision about how often promotion posts may go out."
+      }
+    },
+    {
+      "id": "claude-eval-paraphrase-09",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "How do I stop the progress indicator from jittering inside a terminal multiplexer?",
+      "gold": [
+        "reference/projects/pebble-bugs.md"
+      ],
+      "evidence": "The progress bar flickers in tmux when TERM is screen; set TERM=tmux-256color.",
+      "expansions": {
+        "synonyms": [
+          "flicker fix",
+          "progress bar flashing",
+          "TERM setting"
+        ],
+        "keywords": [
+          "진행 표시줄 깜빡임",
+          "tmux TERM 설정"
+        ],
+        "related": [
+          "Windows long paths",
+          "known bugs",
+          "workaround"
+        ],
+        "noteLine": "Known Pebble bugs with workarounds."
+      }
+    },
+    {
+      "id": "claude-eval-paraphrase-10",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "How often should the secret credentials for live machines be replaced?",
+      "gold": [
+        "reference/ja/鍵管理.md"
+      ],
+      "evidence": "鍵の更新は半年ごとに行い、古い鍵はすぐに無効化する。",
+      "expansions": {
+        "synonyms": [
+          "key rotation interval",
+          "credential renewal",
+          "rotate secrets"
+        ],
+        "keywords": [
+          "サーバー鍵の管理",
+          "鍵更新"
+        ],
+        "related": [
+          "production private key",
+          "vault storage",
+          "invalidate old keys"
+        ],
+        "noteLine": "本番サーバーの秘密鍵の保管と更新ルール."
+      }
+    },
+    {
+      "id": "claude-eval-paraphrase-11",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "How should a large meeting's venue be booked, and by when must the booking be settled?",
+      "gold": [
+        "reference/ja/会議室予約.md"
+      ],
+      "evidence": "十名以上の会議は大会議室を使い、前日までに予約を確定する。",
+      "expansions": {
+        "synonyms": [
+          "room reservation",
+          "venue booking deadline",
+          "large room rule"
+        ],
+        "keywords": [
+          "会議室の予約方法",
+          "社内カレンダー予約"
+        ],
+        "related": [
+          "十名以上",
+          "前日まで",
+          "大会議室"
+        ],
+        "noteLine": "会議室は社内カレンダーから予約する。大人数の会議のルール."
+      }
+    },
+    {
+      "id": "claude-eval-paraphrase-12",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "How frequently does the handheld app ship, and who has to sign off?",
+      "gold": [
+        "reference/zh/发布流程.md"
+      ],
+      "evidence": "移动应用每两周发布一次。发布前需要完成回归测试，并由产品负责人签字确认。",
+      "expansions": {
+        "synonyms": [
+          "release cadence",
+          "mobile release approval",
+          "sign-off owner"
+        ],
+        "keywords": [
+          "移动应用发布流程",
+          "产品负责人签字"
+        ],
+        "related": [
+          "回归测试",
+          "版本号规则",
+          "biweekly release"
+        ],
+        "noteLine": "移动应用发布流程：发布节奏、测试与签字。"
+      }
+    }
+  ]
+}

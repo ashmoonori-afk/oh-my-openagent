@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "revision": "9c7839deb5dc4d7ee18a34a801f19e04ebe8a963",
+  "description": "Public omo documentation at a pinned revision plus the existing fictional multilingual recall corpus. No private user memories. Documents are projected as notes without changing the sources.",
+  "shortCorpus": "packages/omo-senpi/scripts/qa/fixtures/recall-ranker-corpus.json",
+  "sources": [
+    "README.md",
+    "README.ko.md",
+    "README.ja.md",
+    "README.zh-cn.md",
+    "docs/reference/configuration.md",
+    "docs/reference/omo-json.md",
+    "docs/reference/cli.md",
+    "docs/reference/features.md",
+    "docs/reference/monitor.md",
+    "docs/guide/computer-use.md",
+    "docs/reference/omo-daemon.md",
+    "docs/guide/telemetry.md",
+    "docs/guide/installation.md",
+    "docs/guide/senpi-task.md",
+    "docs/guide/team-mode.md",
+    "docs/guide/workflows.md",
+    "docs/guide/agent-model-matching.md",
+    "docs/guide/btw.md",
+    "docs/guide/binary-install.md",
+    "docs/guide/orchestration.md"
+  ],
+  "projection": {
+    "path": "public/<source>",
+    "description": "first ATX heading, otherwise source basename",
+    "body": "entire source file unchanged"
+  },
+  "questionProtocol": {
+    "authors": ["GPT-6.1 Sol", "Claude"],
+    "practicePerAuthor": 16,
+    "evaluationPerAuthor": 48,
+    "slices": ["ko", "en", "mixed", "paraphrase"],
+    "practicePerSlice": 4,
+    "evaluationPerSlice": 12,
+    "rules": [
+      "Independent sessions may read only this manifest and the shared corpus, never the other author's questions or benchmark results.",
+      "Each row has id, split, slice, query, gold paths, evidence quote and optional expansions (synonyms/keywords/related/noteLine).",
+      "Questions and expansions are frozen before any retrieval execution; expansions model search-time author intent, not a live model benchmark.",
+      "Practice and evaluation must ask different facts; do not copy the fixture's existing questions.",
+      "At least half of each split targets long public documents; include short multilingual notes and ambiguous nearby distractors.",
+      "Gold paths include all corpus notes that genuinely answer the question, not every document sharing vocabulary.",
+      "The paraphrase slice uses indirect descriptions rather than quoted source keywords; other slices classify query language."
+    ]
+  }
+}

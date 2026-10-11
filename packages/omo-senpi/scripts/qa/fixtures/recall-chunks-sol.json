@@ -1,0 +1,1712 @@
+{
+  "version": 1,
+  "author": "GPT-6.1 Sol",
+  "model": {
+    "id": "gpt-6.1-sol",
+    "provider": "chatgpt-subscription",
+    "identitySource": "PI_MODEL and PI_PROVIDER runtime environment"
+  },
+  "revision": "9c7839deb5dc4d7ee18a34a801f19e04ebe8a963",
+  "protocol": "recall-chunks-manifest.json questionProtocol version 1",
+  "frozen": true,
+  "authoredAt": "2026-10-11",
+  "metadata": {
+    "independent": true,
+    "retrievalExecuted": false,
+    "benchmarkFeedbackUsed": false,
+    "existingQueriesInspected": false,
+    "otherAuthorQuestionsInspected": false,
+    "partitionNormalization": "Before joint freezing, the orchestrator exchanged same-slice practice/evaluation assignments to remove cross-author fact overlap; question text, gold and expansions were unchanged. IDs retain original author-assigned split labels.",
+    "expansionPolicy": "Independently authored search-intent terms, frozen before retrieval; not answer extraction or benchmark tuning.",
+    "missingManifestSources": [],
+    "limitations": [
+      "Gold relevance and cross-split fact separation are author judgments; validation is structural and exact-quote based, not retrieval measurement.",
+      "Revision identity follows the shared manifest and supplied source pin; no retrieval implementation or benchmark artifacts were inspected."
+    ],
+    "alternateEvidence": {
+      "sol-evaluation-en-03": {
+        "public/docs/reference/omo-json.md": "| `ttl_ms` | positive int | `86400000` (24h) |"
+      },
+      "sol-evaluation-en-06": {
+        "public/docs/reference/configuration.md": "Unavailable when none of its Claude models (`claude-opus-5-5`, `claude-opus-4-6`) is connected; it never falls back to another family, and the installer leaves it out.",
+        "public/docs/reference/features.md": "Unavailable when none of its Claude models is connected; it never falls back to another family."
+      },
+      "sol-evaluation-mixed-07": {
+        "public/docs/reference/configuration.md": "Deprecated compatibility input; use `max_tokens`",
+        "public/docs/reference/features.md": "Deprecated: use `max_tokens`. Maximum response token count"
+      }
+    },
+    "evidencePolicy": "Each row evidence is an exact source quotation present in its primary gold. Shared quotations cover multiple gold paths where identical; metadata.alternateEvidence supplies exact answer-bearing quotations for nonidentical alternate gold passages."
+  },
+  "questions": [
+    {
+      "id": "sol-practice-ko-01",
+      "split": "practice",
+      "slice": "ko",
+      "query": "모니터 중지하면 분리된 손자 프로세스도 종료되나?",
+      "gold": [
+        "public/docs/reference/monitor.md"
+      ],
+      "evidence": "This is a process-group guarantee, not a promise to find or kill any arbitrary grandchild tree that detached itself.",
+      "expansions": {
+        "synonyms": [
+          "종료 범위",
+          "stop process group"
+        ],
+        "keywords": [
+          "monitor_stop",
+          "SIGTERM",
+          "SIGKILL"
+        ],
+        "related": [
+          "detached descendants",
+          "프로세스 그룹"
+        ],
+        "noteLine": "모니터 중지의 프로세스 그룹 보장과 분리된 자식 한계를 찾는다."
+      }
+    },
+    {
+      "id": "sol-practice-ko-02",
+      "split": "practice",
+      "slice": "ko",
+      "query": "첨부파일 있는 작성창에서 옆 대화 시작 가능?",
+      "gold": [
+        "public/docs/guide/btw.md"
+      ],
+      "evidence": "BTW drafts are text-only. If the composer has an attachment, remove it before\n  starting BTW; the parent draft and attachment remain untouched.",
+      "expansions": {
+        "synonyms": [
+          "side conversation",
+          "첨부 제거"
+        ],
+        "keywords": [
+          "BTW",
+          "composer",
+          "text-only"
+        ],
+        "related": [
+          "draft preservation",
+          "작성창"
+        ],
+        "noteLine": "첨부가 있는 초안에서 BTW 시작 조건을 확인한다."
+      }
+    },
+    {
+      "id": "sol-practice-ko-03",
+      "split": "practice",
+      "slice": "ko",
+      "query": "메모리 정리 유휴 트리거만 끄는 설정",
+      "gold": [
+        "public/docs/reference/configuration.md"
+      ],
+      "evidence": "Idle minutes before a dream may start; `0` disables the trigger",
+      "expansions": {
+        "synonyms": [
+          "dream idle trigger",
+          "유휴 실행 비활성화"
+        ],
+        "keywords": [
+          "dream.idle_minutes",
+          "memory"
+        ],
+        "related": [
+          "shutdown launch",
+          "consolidation"
+        ],
+        "noteLine": "꿈 정리 전체 기능이 아니라 유휴 시간 트리거 설정을 찾는다."
+      }
+    },
+    {
+      "id": "sol-practice-ko-04",
+      "split": "practice",
+      "slice": "ko",
+      "query": "회의 녹음 받아쓰기 모델 파일 크기",
+      "gold": [
+        "reference/ko/회의-받아쓰기.md"
+      ],
+      "evidence": "모델 파일은 medium 크기를 쓰고",
+      "expansions": {
+        "synonyms": [
+          "transcription model size",
+          "받아쓰기 엔진"
+        ],
+        "keywords": [
+          "회의",
+          "모델 파일",
+          "받아쓰기"
+        ],
+        "related": [
+          "audio transcription",
+          "로컬 변환"
+        ],
+        "noteLine": "회의 녹음에 쓰는 로컬 모델 크기 메모를 찾는다."
+      }
+    },
+    {
+      "id": "sol-practice-en-01",
+      "split": "practice",
+      "slice": "en",
+      "query": "Compiled omo inspector debugging supported?",
+      "gold": [
+        "public/docs/guide/binary-install.md"
+      ],
+      "evidence": "**`--inspect` / inspector mode is unsupported** in the compiled binaries; use the npm install for debugging with an inspector.",
+      "expansions": {
+        "synonyms": [
+          "debug inspector",
+          "컴파일 바이너리 디버깅"
+        ],
+        "keywords": [
+          "--inspect",
+          "compiled binary",
+          "npm"
+        ],
+        "related": [
+          "debugging distribution"
+        ],
+        "noteLine": "Find which distribution supports inspector debugging."
+      }
+    },
+    {
+      "id": "sol-practice-en-02",
+      "split": "practice",
+      "slice": "en",
+      "query": "Can model_profile accept a literal provider/model?",
+      "gold": [
+        "public/docs/guide/agent-model-matching.md",
+        "public/docs/reference/omo-json.md",
+        "public/docs/reference/configuration.md"
+      ],
+      "evidence": "a literal `provider/model`",
+      "expansions": {
+        "synonyms": [
+          "explicit model selector",
+          "모델 직접 지정"
+        ],
+        "keywords": [
+          "model_profile",
+          "provider/model"
+        ],
+        "related": [
+          "profile syntax",
+          "model pin"
+        ],
+        "noteLine": "Find whether the session-model selector accepts a literal provider-qualified model."
+      }
+    },
+    {
+      "id": "sol-practice-en-03",
+      "split": "practice",
+      "slice": "en",
+      "query": "Task shard socket path too long alternate root",
+      "gold": [
+        "public/docs/reference/omo-daemon.md"
+      ],
+      "evidence": "the same\nbasename goes under the alternate root `/tmp/omo-rpc-<sha256(agentDir)[:8]>`",
+      "expansions": {
+        "synonyms": [
+          "socket length overflow",
+          "소켓 경로 제한"
+        ],
+        "keywords": [
+          "shard",
+          "alternate root",
+          "socket path limit"
+        ],
+        "related": [
+          "unix sockets",
+          "directory permissions"
+        ],
+        "noteLine": "Find how per-session hosts handle an overlong socket path."
+      }
+    },
+    {
+      "id": "sol-practice-en-04",
+      "split": "practice",
+      "slice": "en",
+      "query": "Why are photos left out of laptop backups?",
+      "gold": [
+        "reference/tools/backup.md"
+      ],
+      "evidence": "Photos are excluded because they already sync to the photo service.",
+      "expansions": {
+        "synonyms": [
+          "image archive exclusion",
+          "사진 백업 제외"
+        ],
+        "keywords": [
+          "restic",
+          "photos",
+          "backup"
+        ],
+        "related": [
+          "photo synchronization"
+        ],
+        "noteLine": "Find the reason for the photo exclusion, not database retention."
+      }
+    },
+    {
+      "id": "sol-practice-mixed-01",
+      "split": "practice",
+      "slice": "mixed",
+      "query": "isolated child 완료 후 task_send로 다시 살릴 수 있나?",
+      "gold": [
+        "public/docs/guide/senpi-task.md"
+      ],
+      "evidence": "an isolated child is never revived: once settled its clone is\ngone, so `task_send` and startup recovery both answer\n`isolated_not_revivable`.",
+      "expansions": {
+        "synonyms": [
+          "checkout isolation revival",
+          "격리 작업 재개"
+        ],
+        "keywords": [
+          "isolated",
+          "task_send",
+          "clone"
+        ],
+        "related": [
+          "startup recovery",
+          "completed child"
+        ],
+        "noteLine": "격리된 child의 완료 후 재개 계약을 찾는다."
+      }
+    },
+    {
+      "id": "sol-practice-mixed-02",
+      "split": "practice",
+      "slice": "mixed",
+      "query": "ulw-plan high-accuracy review 최대 rounds",
+      "gold": [
+        "public/docs/guide/orchestration.md"
+      ],
+      "evidence": "Rounds are capped at 5 unless you ask for more.",
+      "expansions": {
+        "synonyms": [
+          "검토 라운드 상한",
+          "review pass limit"
+        ],
+        "keywords": [
+          "ulw-plan",
+          "plan-reviewer",
+          "rounds"
+        ],
+        "related": [
+          "rejection resubmission",
+          "approval"
+        ],
+        "noteLine": "계획 검토 반복의 기본 상한을 확인한다."
+      }
+    },
+    {
+      "id": "sol-practice-mixed-03",
+      "split": "practice",
+      "slice": "mixed",
+      "query": "예전 대화 날짜 모르면 session 검색 순서",
+      "gold": [
+        "public/docs/reference/features.md"
+      ],
+      "evidence": "If you remember text from the conversation but not the date, search first and then read the matching session:",
+      "expansions": {
+        "synonyms": [
+          "conversation text search",
+          "과거 세션 찾기"
+        ],
+        "keywords": [
+          "session_search",
+          "session_read"
+        ],
+        "related": [
+          "hidden sessions",
+          "conversation history"
+        ],
+        "noteLine": "날짜 대신 기억나는 텍스트로 세션을 찾는 방법을 확인한다."
+      }
+    },
+    {
+      "id": "sol-practice-mixed-04",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "newsletter 발송 요일과 KST 시간",
+      "gold": [
+        "reference/projects/newsletter.md"
+      ],
+      "evidence": "sent every Monday at 07:00 KST.",
+      "expansions": {
+        "synonyms": [
+          "뉴스레터 일정",
+          "mailing schedule"
+        ],
+        "keywords": [
+          "newsletter",
+          "발송 일정",
+          "KST"
+        ],
+        "related": [
+          "markdown newsletter",
+          "scheduled sending"
+        ],
+        "noteLine": "뉴스레터 전송 일정 메모를 찾는다."
+      }
+    },
+    {
+      "id": "sol-practice-paraphrase-01",
+      "split": "practice",
+      "slice": "paraphrase",
+      "query": "When a memory write catches a credential, does the failure message repeat the sensitive value?",
+      "gold": [
+        "public/docs/reference/configuration.md"
+      ],
+      "evidence": "The matched text itself never appears in an error, a log line or a notice; only the pattern class\ndoes.",
+      "expansions": {
+        "synonyms": [
+          "secret refusal disclosure",
+          "민감 값 오류 노출"
+        ],
+        "keywords": [
+          "memory",
+          "credential",
+          "error"
+        ],
+        "related": [
+          "secret screening",
+          "redaction"
+        ],
+        "noteLine": "Find what a rejected sensitive memory write reveals in its diagnostic."
+      }
+    },
+    {
+      "id": "sol-practice-paraphrase-02",
+      "split": "practice",
+      "slice": "paraphrase",
+      "query": "Can a worker already living on a shared host bring that host back when its own next worker cannot connect?",
+      "gold": [
+        "public/docs/reference/omo-daemon.md"
+      ],
+      "evidence": "It may only\nconnect to that host: it never ensures, starts, or hands it off, and a silent host is\n`own_host_unreachable`.",
+      "expansions": {
+        "synonyms": [
+          "nested worker reconnect",
+          "호스트 내부 자식 재연결"
+        ],
+        "keywords": [
+          "child",
+          "host",
+          "unreachable"
+        ],
+        "related": [
+          "tree identity",
+          "nested delegation"
+        ],
+        "noteLine": "Find the authority of a host-resident child when delegating again."
+      }
+    },
+    {
+      "id": "sol-practice-paraphrase-03",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "Can I assign a teammate a checkout by giving only the branch label rather than a directory?",
+      "gold": [
+        "public/docs/guide/team-mode.md"
+      ],
+      "evidence": "Path is filesystem-relative or absolute; bare branch names are rejected.",
+      "expansions": {
+        "synonyms": [
+          "member checkout location",
+          "팀원 작업 디렉터리"
+        ],
+        "keywords": [
+          "worktreePath",
+          "branch",
+          "member"
+        ],
+        "related": [
+          "git worktree",
+          "filesystem path"
+        ],
+        "noteLine": "Find the accepted form of a team member checkout location."
+      }
+    },
+    {
+      "id": "sol-practice-paraphrase-04",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "What did we change so an old CDN distribution identifier would no longer leave the new site serving yesterday’s assets?",
+      "gold": [
+        "notes/incidents/2026-08-cache.md"
+      ],
+      "evidence": "Fix: purge by tag instead of id.",
+      "expansions": {
+        "synonyms": [
+          "stale asset invalidation",
+          "오래된 번들 제거"
+        ],
+        "keywords": [
+          "CDN",
+          "purge",
+          "Lighthouse"
+        ],
+        "related": [
+          "cache incident",
+          "distribution identifier"
+        ],
+        "noteLine": "Find the cache-invalidation correction after the stale-bundle incident."
+      }
+    },
+    {
+      "id": "sol-evaluation-ko-01",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "데몬 gc가 작업 저장소 색인도 지우나?",
+      "gold": [
+        "public/docs/reference/omo-daemon.md"
+      ],
+      "evidence": "The store index survives ordinary gc; only\n`gc --prune-store-index` drops entries whose store directory no longer exists.",
+      "expansions": {
+        "synonyms": [
+          "daemon garbage collection",
+          "저장소 인덱스 정리"
+        ],
+        "keywords": [
+          "gc",
+          "task-stores",
+          "prune-store-index"
+        ],
+        "related": [
+          "retained task stores",
+          "dead endpoints"
+        ],
+        "noteLine": "일반 gc와 저장소 색인 가지치기의 차이를 찾는다."
+      }
+    },
+    {
+      "id": "sol-evaluation-ko-02",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "세션별 호스트 이전보다 더 오래된 버전으로 롤백해도 되나?",
+      "gold": [
+        "public/docs/reference/omo-daemon.md"
+      ],
+      "evidence": "rolling back past R0 is unsupported.",
+      "expansions": {
+        "synonyms": [
+          "rollback support floor",
+          "다운그레이드 최소 버전"
+        ],
+        "keywords": [
+          "R0",
+          "rollback",
+          "interrupted turn"
+        ],
+        "related": [
+          "continuation compatibility",
+          "older release"
+        ],
+        "noteLine": "세션별 호스트 전환 이후 지원되는 롤백 최저 버전을 확인한다."
+      }
+    },
+    {
+      "id": "sol-evaluation-ko-03",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "모니터 정규식에 안 맞은 출력은 어디서 읽나?",
+      "gold": [
+        "public/docs/reference/monitor.md"
+      ],
+      "evidence": "unmatched lines stay in the ring and are readable via `monitor_output` (`stream: \"unmatched\"` or `\"all\"`).",
+      "expansions": {
+        "synonyms": [
+          "unmatched output",
+          "필터 제외 로그"
+        ],
+        "keywords": [
+          "match_pattern",
+          "monitor_output",
+          "ring"
+        ],
+        "related": [
+          "retained lines",
+          "stream selection"
+        ],
+        "noteLine": "자동 주입에서 빠진 모니터 출력을 읽는 방법을 찾는다."
+      }
+    },
+    {
+      "id": "sol-evaluation-ko-04",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "옆 대화 화면에서 또 옆 대화 열면 중첩되나?",
+      "gold": [
+        "public/docs/guide/btw.md"
+      ],
+      "evidence": "Starting from a BTW view creates a sibling side, never a nested side.",
+      "expansions": {
+        "synonyms": [
+          "sibling side session",
+          "대화 중첩"
+        ],
+        "keywords": [
+          "BTW",
+          "parent",
+          "side"
+        ],
+        "related": [
+          "retained conversations",
+          "conversation tree"
+        ],
+        "noteLine": "BTW 화면에서 새 대화의 부모 관계를 확인한다."
+      }
+    },
+    {
+      "id": "sol-evaluation-ko-05",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "메모리 구조 검사에서 읽기 실패와 중복 내용은 실패인가 경고인가?",
+      "gold": [
+        "public/docs/reference/configuration.md"
+      ],
+      "evidence": "Unreadable files and invalid frontmatter fail; other structural findings warn.",
+      "expansions": {
+        "synonyms": [
+          "memory audit severity",
+          "구조 검사 등급"
+        ],
+        "keywords": [
+          "file_unreadable",
+          "content_duplicate",
+          "frontmatter"
+        ],
+        "related": [
+          "doctor audit",
+          "validation"
+        ],
+        "noteLine": "읽을 수 없는 파일과 중복 본문의 검사 심각도를 구분한다."
+      }
+    },
+    {
+      "id": "sol-evaluation-ko-06",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "직접 설정한 카테고리는 필요한 모델 게이트를 우회하나?",
+      "gold": [
+        "public/docs/guide/agent-model-matching.md"
+      ],
+      "evidence": "Writing `categories.<name>` yourself lifts both checks: the category is always listed and runs what you set.",
+      "expansions": {
+        "synonyms": [
+          "custom category availability",
+          "카테고리 사용자 override"
+        ],
+        "keywords": [
+          "categories",
+          "model gate",
+          "configured category"
+        ],
+        "related": [
+          "builtin chains",
+          "provider availability"
+        ],
+        "noteLine": "사용자 설정이 카테고리 노출 게이트에 미치는 영향을 확인한다."
+      }
+    },
+    {
+      "id": "sol-evaluation-ko-07",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "비대화형 실행 에이전트 지정 우선순위",
+      "gold": [
+        "public/docs/reference/cli.md"
+      ],
+      "evidence": "1. `--agent`\n2. `OPENCODE_DEFAULT_AGENT`\n3. `default_run_agent` in plugin config",
+      "expansions": {
+        "synonyms": [
+          "run agent precedence",
+          "에이전트 선택 순서"
+        ],
+        "keywords": [
+          "--agent",
+          "OPENCODE_DEFAULT_AGENT",
+          "default_run_agent"
+        ],
+        "related": [
+          "CLI override",
+          "plugin config"
+        ],
+        "noteLine": "run 명령의 에이전트 선택 우선순위를 찾는다."
+      }
+    },
+    {
+      "id": "sol-evaluation-ko-08",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "원라인 바이너리 설치 스크립트 루트 실행 허용?",
+      "gold": [
+        "public/docs/guide/binary-install.md"
+      ],
+      "evidence": "It refuses to run as root.",
+      "expansions": {
+        "synonyms": [
+          "installer root refusal",
+          "관리자 설치 제한"
+        ],
+        "keywords": [
+          "install script",
+          "root",
+          "binary"
+        ],
+        "related": [
+          "one-line installation",
+          "user install"
+        ],
+        "noteLine": "원라인 설치 스크립트의 루트 실행 제한을 확인한다."
+      }
+    },
+    {
+      "id": "sol-evaluation-ko-09",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "블로그 제목 길이 상한",
+      "gold": [
+        "reference/ko/블로그-규칙.md"
+      ],
+      "evidence": "블로그 글 제목은 40자 이내로 쓴다.",
+      "expansions": {
+        "synonyms": [
+          "blog title length",
+          "제목 글자 수"
+        ],
+        "keywords": [
+          "블로그",
+          "제목",
+          "글자 수"
+        ],
+        "related": [
+          "글 작성 규칙"
+        ],
+        "noteLine": "블로그 글 제목의 길이 규칙을 찾는다."
+      }
+    },
+    {
+      "id": "sol-evaluation-ko-10",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "빌드 크레딧 소진하면 어떤 빌드만 남기나?",
+      "gold": [
+        "reference/ko/크레딧.md"
+      ],
+      "evidence": "클라우드 빌드 크레딧이 떨어지면 야간 빌드를 멈추고 수동 빌드만 돌린다.",
+      "expansions": {
+        "synonyms": [
+          "build credit exhaustion",
+          "야간 작업 중지"
+        ],
+        "keywords": [
+          "클라우드",
+          "크레딧",
+          "수동 빌드"
+        ],
+        "related": [
+          "budget fallback",
+          "nightly builds"
+        ],
+        "noteLine": "클라우드 빌드 비용이 소진된 뒤의 운영 규칙을 찾는다."
+      }
+    },
+    {
+      "id": "sol-evaluation-ko-11",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "주간 스프린트 보드 확인 요일과 시간",
+      "gold": [
+        "reference/ko/스프린트-일정.md"
+      ],
+      "evidence": "매주 월요일 아홉 시에 스프린트 보드를 보고",
+      "expansions": {
+        "synonyms": [
+          "weekly sprint planning",
+          "주간 일정"
+        ],
+        "keywords": [
+          "스프린트",
+          "보드",
+          "주간 확인"
+        ],
+        "related": [
+          "캘린더",
+          "작업 계획"
+        ],
+        "noteLine": "이번 주 작업을 계획하는 보드 확인 일정을 찾는다."
+      }
+    },
+    {
+      "id": "sol-evaluation-ko-12",
+      "split": "evaluation",
+      "slice": "ko",
+      "query": "사내 원격 리눅스 서버 메모리 제한",
+      "gold": [
+        "reference/ko/원격-서버.md"
+      ],
+      "evidence": "메모리 상한은 4GB로 설정했다.",
+      "expansions": {
+        "synonyms": [
+          "remote server memory cap",
+          "리눅스 자원 상한"
+        ],
+        "keywords": [
+          "서버",
+          "메모리",
+          "상한"
+        ],
+        "related": [
+          "mesh VPN",
+          "resource limit"
+        ],
+        "noteLine": "사내 원격 리눅스 서버의 메모리 상한 메모를 찾는다."
+      }
+    },
+    {
+      "id": "sol-evaluation-en-01",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "Do OpenCode monitors recover after plugin reload?",
+      "gold": [
+        "public/docs/reference/monitor.md"
+      ],
+      "evidence": "No persistence or recovery across plugin reloads. State is in memory only.",
+      "expansions": {
+        "synonyms": [
+          "monitor restart survival",
+          "플러그인 재로드 복구"
+        ],
+        "keywords": [
+          "OpenCode",
+          "monitor",
+          "reload"
+        ],
+        "related": [
+          "in-memory state",
+          "persistence"
+        ],
+        "noteLine": "Find monitor persistence limits across plugin reloads."
+      }
+    },
+    {
+      "id": "sol-evaluation-en-02",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "Monitor start without Bash permission API or allowlist",
+      "gold": [
+        "public/docs/reference/monitor.md"
+      ],
+      "evidence": "If `allowed_commands` is empty or unset and Bash-equivalent permission is unavailable, Monitor denies the start request.",
+      "expansions": {
+        "synonyms": [
+          "fallback permission denial",
+          "명령 허용 목록"
+        ],
+        "keywords": [
+          "allowed_commands",
+          "Bash permission",
+          "monitor_start"
+        ],
+        "related": [
+          "fail closed",
+          "program-name gate"
+        ],
+        "noteLine": "Find fallback start behavior when both permission paths are unavailable."
+      }
+    },
+    {
+      "id": "sol-evaluation-en-03",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "Task record and artifact retention default duration",
+      "gold": [
+        "public/docs/guide/senpi-task.md",
+        "public/docs/reference/omo-json.md"
+      ],
+      "evidence": "`task.ttl_ms` (record and artifact retention, default 86400000 ms)",
+      "expansions": {
+        "synonyms": [
+          "task retention lifetime",
+          "작업 기록 보존 기간"
+        ],
+        "keywords": [
+          "task.ttl_ms",
+          "artifacts",
+          "retention"
+        ],
+        "related": [
+          "record expiration",
+          "idle parking"
+        ],
+        "noteLine": "Find retention duration rather than resident idle timeout."
+      }
+    },
+    {
+      "id": "sol-evaluation-en-04",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "Revive a parked team member by name or task id?",
+      "gold": [
+        "public/docs/guide/senpi-task.md"
+      ],
+      "evidence": "Team-name sends remain durable mailbox writes: a parked process has no active inbox poller, so use its task id for direct revival or resume the owning session before expecting mailbox delivery.",
+      "expansions": {
+        "synonyms": [
+          "parked member direct revival",
+          "팀원 재개 주소"
+        ],
+        "keywords": [
+          "task id",
+          "team name",
+          "task_send"
+        ],
+        "related": [
+          "durable inbox",
+          "rpc_detached"
+        ],
+        "noteLine": "Find the addressing needed to directly revive a parked team process."
+      }
+    },
+    {
+      "id": "sol-evaluation-en-05",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "Missing plan execute bootstrap gets plan-reviewer?",
+      "gold": [
+        "public/docs/guide/orchestration.md"
+      ],
+      "evidence": "When `/ulw-execute` finds no plan and bootstraps `/ulw-plan` itself, the gate stays locked: that bootstrap plan is written without gap analysis or review, and the planner says so.",
+      "expansions": {
+        "synonyms": [
+          "automatic planning review gate",
+          "실행 부트스트랩 계획"
+        ],
+        "keywords": [
+          "ulw-execute",
+          "ulw-plan",
+          "plan-reviewer"
+        ],
+        "related": [
+          "explicit workflow request",
+          "gap analysis"
+        ],
+        "noteLine": "Find review-gate behavior for execution-created bootstrap plans."
+      }
+    },
+    {
+      "id": "sol-evaluation-en-06",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "Why does the writing category vanish without Claude providers?",
+      "gold": [
+        "public/docs/guide/agent-model-matching.md",
+        "public/docs/reference/configuration.md",
+        "public/docs/reference/features.md"
+      ],
+      "evidence": "Every other builtin category is listed only while at least one rung of its chain resolves, which is how `writing` disappears without its Claude models.",
+      "expansions": {
+        "synonyms": [
+          "category availability chain",
+          "문서 작성 모델 조건"
+        ],
+        "keywords": [
+          "writing",
+          "Claude",
+          "fallback chain"
+        ],
+        "related": [
+          "provider connection",
+          "builtin categories"
+        ],
+        "noteLine": "Find writing-category availability when its model family is not connected."
+      }
+    },
+    {
+      "id": "sol-evaluation-en-07",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "How to ask again after declining a missing language server install?",
+      "gold": [
+        "public/docs/reference/configuration.md"
+      ],
+      "evidence": "To get prompted again - or to re-enable a server that an agent declined on your behalf - delete the file or the server's entry in it.",
+      "expansions": {
+        "synonyms": [
+          "reset LSP install refusal",
+          "언어 서버 설치 거절 초기화"
+        ],
+        "keywords": [
+          "lsp-install-decisions.json",
+          "declined",
+          "server"
+        ],
+        "related": [
+          "persisted decision",
+          "install prompt"
+        ],
+        "noteLine": "Find how to clear a persisted missing-language-server refusal."
+      }
+    },
+    {
+      "id": "sol-evaluation-en-08",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "Where does the self-contained binary provision its runtime on first launch?",
+      "gold": [
+        "public/docs/guide/binary-install.md"
+      ],
+      "evidence": "On first run the binary writes its runtime to `~/.omo/binary-runtime/<version>/` (the engine, plugin, native PTY prebuild, themes, and assets) and re-executes from there.",
+      "expansions": {
+        "synonyms": [
+          "first launch extraction",
+          "바이너리 런타임 배치"
+        ],
+        "keywords": [
+          "self-provisioning",
+          "binary-runtime",
+          "version"
+        ],
+        "related": [
+          "embedded resources",
+          "re-execution"
+        ],
+        "noteLine": "Find first-run runtime provisioning location."
+      }
+    },
+    {
+      "id": "sol-evaluation-en-09",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "How does Minho prefer technical proposals delivered?",
+      "gold": [
+        "people/minho/card.md"
+      ],
+      "evidence": "He prefers written RFCs over meetings.",
+      "expansions": {
+        "synonyms": [
+          "proposal format",
+          "민호 설계 제안"
+        ],
+        "keywords": [
+          "Minho",
+          "RFC",
+          "written"
+        ],
+        "related": [
+          "backend engineer",
+          "communication"
+        ],
+        "noteLine": "Find Minho’s proposal-format preference rather than Dana’s status format."
+      }
+    },
+    {
+      "id": "sol-evaluation-en-10",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "Should approval requests go to Dana?",
+      "gold": [
+        "people/dana/background.md"
+      ],
+      "evidence": "She is not the team lead; route approvals to Minho.",
+      "expansions": {
+        "synonyms": [
+          "approval owner",
+          "승인 담당자"
+        ],
+        "keywords": [
+          "Dana",
+          "Minho",
+          "approval"
+        ],
+        "related": [
+          "team lead",
+          "ingestion jobs"
+        ],
+        "noteLine": "Find who receives approvals instead of assuming Dana is the lead."
+      }
+    },
+    {
+      "id": "sol-evaluation-en-11",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "May shared credentials be copied into chat or notes?",
+      "gold": [
+        "reference/tools/password-manager.md"
+      ],
+      "evidence": "Never paste secrets into chat or notes.",
+      "expansions": {
+        "synonyms": [
+          "credential sharing restriction",
+          "비밀 채팅 금지"
+        ],
+        "keywords": [
+          "shared credentials",
+          "chat",
+          "notes"
+        ],
+        "related": [
+          "team vault",
+          "OS keychain"
+        ],
+        "noteLine": "Find credential handling rules for conversations and notes."
+      }
+    },
+    {
+      "id": "sol-evaluation-en-12",
+      "split": "evaluation",
+      "slice": "en",
+      "query": "Pebble minor version bump command",
+      "gold": [
+        "reference/projects/pebble-cli.md"
+      ],
+      "evidence": "Bump the version with `pebble release minor`.",
+      "expansions": {
+        "synonyms": [
+          "increment minor release",
+          "마이너 버전 올리기"
+        ],
+        "keywords": [
+          "Pebble",
+          "release minor",
+          "version"
+        ],
+        "related": [
+          "registry publishing",
+          "CI release"
+        ],
+        "noteLine": "Find the version bump command, not the publishing token or path bug."
+      }
+    },
+    {
+      "id": "sol-evaluation-mixed-01",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "live_safe 요청인데 live_mode_enabled false면 어떻게 되나?",
+      "gold": [
+        "public/docs/reference/monitor.md"
+      ],
+      "evidence": "If `mode: \"live_safe\"` is requested while `monitor.live_mode_enabled` is false, Monitor starts the command in `idle` mode and returns a note about the downgrade.",
+      "expansions": {
+        "synonyms": [
+          "live mode downgrade",
+          "실시간 모드 강등"
+        ],
+        "keywords": [
+          "live_safe",
+          "idle",
+          "live_mode_enabled"
+        ],
+        "related": [
+          "monitor injection mode",
+          "configuration"
+        ],
+        "noteLine": "실시간 모드가 비활성일 때 모니터 시작 결과를 확인한다."
+      }
+    },
+    {
+      "id": "sol-evaluation-mixed-02",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "BTW inherited context 메시지 수와 KiB cap",
+      "gold": [
+        "public/docs/guide/btw.md"
+      ],
+      "evidence": "capped at 64 messages and 64 KiB.",
+      "expansions": {
+        "synonyms": [
+          "옆 대화 배경 문맥 제한",
+          "side context budget"
+        ],
+        "keywords": [
+          "BTW",
+          "messages",
+          "context budget"
+        ],
+        "related": [
+          "stable boundary",
+          "read-only background"
+        ],
+        "noteLine": "BTW가 가져가는 메인 대화 문맥의 두 상한을 찾는다."
+      }
+    },
+    {
+      "id": "sol-evaluation-mixed-03",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "daemon stop --all --wait가 TUI 세션도 종료하나?",
+      "gold": [
+        "public/docs/reference/omo-daemon.md"
+      ],
+      "evidence": "`stop --all [--wait]` neither stops nor waits on them",
+      "expansions": {
+        "synonyms": [
+          "terminal endpoint ownership",
+          "터미널 종료 범위"
+        ],
+        "keywords": [
+          "stop --all",
+          "tui",
+          "terminal"
+        ],
+        "related": [
+          "handoff skip",
+          "host lifecycle"
+        ],
+        "noteLine": "전체 호스트 중지가 터미널 세션을 포함하는지 확인한다."
+      }
+    },
+    {
+      "id": "sol-evaluation-mixed-04",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "다른 launch profile host끼리 generation handoff 가능?",
+      "gold": [
+        "public/docs/reference/omo-daemon.md"
+      ],
+      "evidence": "Two builds whose ordinals cannot be\ncompared — different launch profiles, or an ordinal the host does not report —\nnever hand off; the newer side reuses or refuses, and says why.",
+      "expansions": {
+        "synonyms": [
+          "빌드 세대 전환",
+          "profile mismatch"
+        ],
+        "keywords": [
+          "ordinal",
+          "launch profile",
+          "handoff"
+        ],
+        "related": [
+          "upgrade policy",
+          "generation compatibility"
+        ],
+        "noteLine": "런치 프로필이 다른 빌드의 핸드오프 계약을 찾는다."
+      }
+    },
+    {
+      "id": "sol-evaluation-mixed-05",
+      "split": "practice",
+      "slice": "mixed",
+      "query": "dream audit 수리 때 boundaries와 evidence도 바꾸나?",
+      "gold": [
+        "public/docs/reference/configuration.md"
+      ],
+      "evidence": "They leave evidence\nand `system/boundaries.md` untouched and report fixed and unresolved codes.",
+      "expansions": {
+        "synonyms": [
+          "memory consolidation protected files",
+          "기억 정리 보호 파일"
+        ],
+        "keywords": [
+          "dream",
+          "audit",
+          "boundaries"
+        ],
+        "related": [
+          "orphan repair",
+          "duplicate consolidation"
+        ],
+        "noteLine": "꿈 정리의 구조 수리에서 보존하는 항목을 확인한다."
+      }
+    },
+    {
+      "id": "sol-evaluation-mixed-06",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "memory doctor receipts 파일 마지막 partial line 처리",
+      "gold": [
+        "public/docs/reference/configuration.md"
+      ],
+      "evidence": "The check warns when the file ends in a partial line.",
+      "expansions": {
+        "synonyms": [
+          "불완전 영수증 행",
+          "truncated receipt warning"
+        ],
+        "keywords": [
+          "doctor",
+          "receipts.jsonl",
+          "partial line"
+        ],
+        "related": [
+          "append-only lifecycle",
+          "maintenance outcome"
+        ],
+        "noteLine": "메모리 영수증 파일의 잘린 마지막 행 검사 결과를 찾는다."
+      }
+    },
+    {
+      "id": "sol-evaluation-mixed-07",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "모델 설정 maxTokens deprecated key replacement",
+      "gold": [
+        "public/docs/reference/omo-json.md",
+        "public/docs/reference/configuration.md",
+        "public/docs/reference/features.md"
+      ],
+      "evidence": "| `maxTokens` | `max_tokens` |",
+      "expansions": {
+        "synonyms": [
+          "토큰 상한 키 마이그레이션",
+          "maximum token setting"
+        ],
+        "keywords": [
+          "maxTokens",
+          "max_tokens",
+          "models"
+        ],
+        "related": [
+          "legacy configuration",
+          "canonical fields"
+        ],
+        "noteLine": "모델 항목의 구형 토큰 상한 키를 대체하는 표준 이름을 찾는다."
+      }
+    },
+    {
+      "id": "sol-evaluation-mixed-08",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "team .delivering reservation crash 뒤 TTL",
+      "gold": [
+        "public/docs/guide/team-mode.md"
+      ],
+      "evidence": "reclaimed on team resume if stranded by a crash (10 minute TTL).",
+      "expansions": {
+        "synonyms": [
+          "메일함 예약 회수",
+          "delivery reservation expiry"
+        ],
+        "keywords": [
+          ".delivering",
+          "crash",
+          "team resume"
+        ],
+        "related": [
+          "processed inbox",
+          "durable mailbox"
+        ],
+        "noteLine": "팀 메시지 전달 예약이 충돌 후 회수되는 TTL을 찾는다."
+      }
+    },
+    {
+      "id": "sol-evaluation-mixed-09",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "生产数据库 restore drill 주기",
+      "gold": [
+        "reference/zh/数据库备份.md"
+      ],
+      "evidence": "恢复演练每季度进行一次。",
+      "expansions": {
+        "synonyms": [
+          "数据库恢复演练",
+          "복구 훈련",
+          "restore rehearsal"
+        ],
+        "keywords": [
+          "database",
+          "backup",
+          "restore drill"
+        ],
+        "related": [
+          "production recovery",
+          "retention policy"
+        ],
+        "noteLine": "중국어 데이터베이스 메모에서 복구 연습 주기를 찾는다."
+      }
+    },
+    {
+      "id": "sol-evaluation-mixed-10",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "出張 영수증 原本 보관 기간",
+      "gold": [
+        "reference/ja/経費精算.md"
+      ],
+      "evidence": "原本は三か月保管する。",
+      "expansions": {
+        "synonyms": [
+          "receipt original retention",
+          "領収書",
+          "영수증 보존"
+        ],
+        "keywords": [
+          "出張",
+          "原本",
+          "보관 기간"
+        ],
+        "related": [
+          "expense reimbursement",
+          "receipt photo"
+        ],
+        "noteLine": "일본어 출장비 메모의 영수증 원본 보관 기간을 찾는다."
+      }
+    },
+    {
+      "id": "sol-evaluation-mixed-11",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "紧急告警 on-call 응답 시간 제한",
+      "gold": [
+        "reference/zh/值班规则.md"
+      ],
+      "evidence": "紧急告警必须在十五分钟内响应。",
+      "expansions": {
+        "synonyms": [
+          "긴급 호출 응답",
+          "emergency alert acknowledgement"
+        ],
+        "keywords": [
+          "值班",
+          "告警",
+          "응답 상한"
+        ],
+        "related": [
+          "on-call rotation",
+          "incident response"
+        ],
+        "noteLine": "중국어 당직 메모에서 긴급 경보 응답 상한을 찾는다."
+      }
+    },
+    {
+      "id": "sol-evaluation-mixed-12",
+      "split": "evaluation",
+      "slice": "mixed",
+      "query": "Lighthouse release tag 버전 형식",
+      "gold": [
+        "reference/projects/lighthouse-release.md"
+      ],
+      "evidence": "Tags follow vYYYY.MM.patch.",
+      "expansions": {
+        "synonyms": [
+          "릴리스 태그 규칙",
+          "version tag pattern"
+        ],
+        "keywords": [
+          "Lighthouse",
+          "version tag",
+          "release"
+        ],
+        "related": [
+          "signed changelog",
+          "release checklist"
+        ],
+        "noteLine": "배포 승격 절차가 아니라 릴리스 태그 형식을 찾는다."
+      }
+    },
+    {
+      "id": "sol-evaluation-paraphrase-01",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "Does the watcher inventory expose the exact shell invocation, or just a safe description?",
+      "gold": [
+        "public/docs/reference/monitor.md"
+      ],
+      "evidence": "Raw commands are not included in the result.",
+      "expansions": {
+        "synonyms": [
+          "watcher inventory privacy",
+          "모니터 목록 명령 숨김"
+        ],
+        "keywords": [
+          "monitor_list",
+          "label",
+          "command"
+        ],
+        "related": [
+          "session ownership",
+          "safe transcript"
+        ],
+        "noteLine": "Find whether monitor inventory reveals raw command text."
+      }
+    },
+    {
+      "id": "sol-evaluation-paraphrase-02",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "Will the history borrowed by a side discussion become saved messages in its own conversation log?",
+      "gold": [
+        "public/docs/guide/btw.md"
+      ],
+      "evidence": "The\n   inherited messages are not written into the side transcript.",
+      "expansions": {
+        "synonyms": [
+          "borrowed context persistence",
+          "옆 대화 배경 기록"
+        ],
+        "keywords": [
+          "BTW",
+          "inherited messages",
+          "transcript"
+        ],
+        "related": [
+          "read-only context",
+          "side session"
+        ],
+        "noteLine": "Find whether inherited main-context messages are persisted in the side transcript."
+      }
+    },
+    {
+      "id": "sol-evaluation-paraphrase-03",
+      "split": "practice",
+      "slice": "paraphrase",
+      "query": "Can an inactivity sweep put a worker away while it is still working or has an undelivered instruction?",
+      "gold": [
+        "public/docs/guide/senpi-task.md"
+      ],
+      "evidence": "running children and children with pending steering are protected.",
+      "expansions": {
+        "synonyms": [
+          "idle sweep eligibility",
+          "작업 중 유휴 보관"
+        ],
+        "keywords": [
+          "resident timeout",
+          "running child",
+          "pending steering"
+        ],
+        "related": [
+          "parking",
+          "activity protection"
+        ],
+        "noteLine": "Find which live activity protects a child from idle parking."
+      }
+    },
+    {
+      "id": "sol-evaluation-paraphrase-04",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "If one host becomes memory hungry, are new sessions there or on its neighbors rejected?",
+      "gold": [
+        "public/docs/reference/omo-daemon.md"
+      ],
+      "evidence": "The engine never refuses a\nsession because of memory, and pressure on one endpoint never gates another.",
+      "expansions": {
+        "synonyms": [
+          "host memory admission",
+          "호스트 메모리 압박"
+        ],
+        "keywords": [
+          "memory",
+          "endpoint",
+          "session"
+        ],
+        "related": [
+          "RSS reporting",
+          "observability"
+        ],
+        "noteLine": "Find whether host memory reporting is also an admission gate."
+      }
+    },
+    {
+      "id": "sol-evaluation-paraphrase-05",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "Can the memory health checker automatically clean up a malformed corpus if I ask it to repair everything?",
+      "gold": [
+        "public/docs/reference/configuration.md"
+      ],
+      "evidence": "The audit is read-only. `/doctor` has no `--fix` flag and rejects unknown flags;\nthe existing skill-name repair is its only automatic repair.",
+      "expansions": {
+        "synonyms": [
+          "memory health repair scope",
+          "기억 검사 자동 수리"
+        ],
+        "keywords": [
+          "doctor",
+          "audit",
+          "repair"
+        ],
+        "related": [
+          "frontmatter repair",
+          "read-only inspection"
+        ],
+        "noteLine": "Find the repair limits of the memory health checker."
+      }
+    },
+    {
+      "id": "sol-evaluation-paraphrase-06",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "Which sessions keep their chosen brain instead of getting the new-session lane selection?",
+      "gold": [
+        "public/docs/guide/agent-model-matching.md",
+        "public/docs/reference/omo-json.md"
+      ],
+      "evidence": "`--model` flag, a scoped model, a resumed session, and a fork",
+      "expansions": {
+        "synonyms": [
+          "explicit session model preservation",
+          "세션 모델 유지"
+        ],
+        "keywords": [
+          "model profile",
+          "resume",
+          "fork"
+        ],
+        "related": [
+          "fresh session",
+          "explicit model"
+        ],
+        "noteLine": "Find which explicit or existing-session cases bypass profile application."
+      }
+    },
+    {
+      "id": "sol-evaluation-paraphrase-07",
+      "split": "practice",
+      "slice": "paraphrase",
+      "query": "The command-line job looks finished but a spawned conversation is still busy; may the runner exit?",
+      "gold": [
+        "public/docs/reference/cli.md"
+      ],
+      "evidence": "all descendant sessions are idle",
+      "expansions": {
+        "synonyms": [
+          "noninteractive completion gate",
+          "하위 세션 완료 조건"
+        ],
+        "keywords": [
+          "run",
+          "descendant sessions",
+          "idle"
+        ],
+        "related": [
+          "todos",
+          "continuation hooks"
+        ],
+        "noteLine": "Find why the non-interactive runner waits for descendants."
+      }
+    },
+    {
+      "id": "sol-evaluation-paraphrase-08",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "Why fetch the Mac executable from a terminal rather than clicking its download in a web page?",
+      "gold": [
+        "public/docs/guide/binary-install.md"
+      ],
+      "evidence": "A binary downloaded through a web browser carries the `com.apple.quarantine` attribute and macOS Gatekeeper will suspend it on first run.",
+      "expansions": {
+        "synonyms": [
+          "Mac download first-run suspension",
+          "맥 다운로드 격리"
+        ],
+        "keywords": [
+          "curl",
+          "Gatekeeper",
+          "quarantine"
+        ],
+        "related": [
+          "unsigned binaries",
+          "browser download"
+        ],
+        "noteLine": "Find the reason terminal download is recommended on macOS."
+      }
+    },
+    {
+      "id": "sol-evaluation-paraphrase-09",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "How long can the plant planner keep changes on the phone between scheduled exchanges with the service?",
+      "gold": [
+        "reference/projects/garden-app.md"
+      ],
+      "evidence": "syncs through the sync service every six hours.",
+      "expansions": {
+        "synonyms": [
+          "plant schedule synchronization",
+          "식물 일정 동기화 주기"
+        ],
+        "keywords": [
+          "garden planner",
+          "local schedules",
+          "sync"
+        ],
+        "related": [
+          "mobile app",
+          "watering reminders"
+        ],
+        "noteLine": "Find the garden app’s scheduled synchronization interval."
+      }
+    },
+    {
+      "id": "sol-evaluation-paraphrase-10",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "For Japanese production access, how often do we replace the credential and what happens to the superseded one?",
+      "gold": [
+        "reference/ja/鍵管理.md"
+      ],
+      "evidence": "鍵の更新は半年ごとに行い、古い鍵はすぐに無効化する。",
+      "expansions": {
+        "synonyms": [
+          "server credential rotation",
+          "本番鍵更新",
+          "운영 키 교체"
+        ],
+        "keywords": [
+          "production server",
+          "key",
+          "rotation"
+        ],
+        "related": [
+          "vault storage",
+          "obsolete credentials"
+        ],
+        "noteLine": "Find the Japanese production-key rotation and invalidation rule."
+      }
+    },
+    {
+      "id": "sol-evaluation-paraphrase-11",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "Which formatter handles the snake-language files when the editor saves them?",
+      "gold": [
+        "reference/tools/editor.md"
+      ],
+      "evidence": "Python uses ruff.",
+      "expansions": {
+        "synonyms": [
+          "save-time Python formatter",
+          "파이썬 저장 시 포맷"
+        ],
+        "keywords": [
+          "editor",
+          "Python",
+          "format on save"
+        ],
+        "related": [
+          "language formatting",
+          "development setup"
+        ],
+        "noteLine": "Find the editor’s Python formatting tool."
+      }
+    },
+    {
+      "id": "sol-evaluation-paraphrase-12",
+      "split": "evaluation",
+      "slice": "paraphrase",
+      "query": "How do I close the build terminal group without accidentally taking out the similarly named cache group?",
+      "gold": [
+        "reference/tools/tmux-rules.md"
+      ],
+      "evidence": "Always target tmux sessions with an exact match: `tmux kill-session -t =build`.",
+      "expansions": {
+        "synonyms": [
+          "exact terminal session targeting",
+          "터미널 세션 정확 지정"
+        ],
+        "keywords": [
+          "tmux",
+          "kill-session",
+          "build-cache"
+        ],
+        "related": [
+          "prefix match",
+          "session names"
+        ],
+        "noteLine": "Find the exact-target syntax that avoids killing a nearby named session."
+      }
+    }
+  ]
+}
