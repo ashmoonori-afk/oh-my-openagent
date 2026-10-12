@@ -107,7 +107,7 @@ describe("resolveAgentRecallSettings", () => {
       sidecar_max_tokens: 48000,
       max_concurrent_wakes: 2,
       tool_budget: 4,
-      query_expansion: false,
+      query_expansion: false, query_rarity: true,
     })
     expect(other).toEqual({
       enabled: true,
@@ -117,7 +117,7 @@ describe("resolveAgentRecallSettings", () => {
       sidecar_max_tokens: 48000,
       max_concurrent_wakes: 2,
       tool_budget: 8,
-      query_expansion: false,
+      query_expansion: false, query_rarity: true,
     })
   })
 })
