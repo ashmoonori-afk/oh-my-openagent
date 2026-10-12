@@ -14,7 +14,9 @@
 //            hashes only (no paths, no question text), safe to share for a private memory.
 //   compare  per-question identity of two run files (rank, path hash and score per result) plus the table.
 //
-// Questions file: JSON array of { "id", "lang", "question", "goldPath" } (goldPath = memory path).
+// Questions file: JSON array of { "id", "lang", "question", "goldPath" } (goldPath = memory path), or an
+// object of named arrays picked with --set; the published public sets are
+// fixtures/memory-recall-ab-public-questions.json (head90 = 90 questions EN45/KO45, deep30 = 30 deep answers).
 //
 //   bun packages/omo-senpi/scripts/qa/memory-recall-ab.mjs build --markdown <dir> --out <repo dir>
 //   bun packages/omo-senpi/scripts/qa/memory-recall-ab.mjs run --repo <repo dir> --questions q.json --arm off --runs 3 --out off.json
@@ -111,7 +113,9 @@ async function run() {
   const arm = flag("arm", "off")
   if (arm !== "off" && arm !== "on") throw new Error("--arm must be off or on")
   if (arm === "on" && core.RECALL_NOTE_START_BOOST === undefined) throw new Error("this memory-core has no note-start weighting; run --arm off against it")
-  const questions = JSON.parse(readFileSync(resolve(flag("questions")), "utf8"))
+  const loaded = JSON.parse(readFileSync(resolve(flag("questions")), "utf8"))
+  // A plain array, or a fixture object holding named sets chosen with --set (fixtures/memory-recall-ab-public-questions.json).
+  const questions = Array.isArray(loaded) ? loaded : loaded[flag("set", "head90")]
   const runs = Number(flag("runs", "3"))
   const aggregateOnly = has("aggregate-only")
   const loadStart = performance.now()
