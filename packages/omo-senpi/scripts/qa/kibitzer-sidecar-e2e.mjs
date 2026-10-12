@@ -40,6 +40,11 @@
 //                  with the four added-term fields, a search whose own words match no memory finds one
 //                  through its synonyms, and that memory - never offered as a candidate - is nudged and
 //                  reaches the parent.
+//   note-start / note-start-off
+//                  two Korean memories of equal length mention the prompt's word once, one in its opening and
+//                  one at the end; `memory.recall.max_items` is 1 so exactly one candidate is offered. With
+//                  `memory.recall.note_start` on the opening memory is the candidate and its nudge reaches the
+//                  parent; with it off (control) the two tie and the path-order first (the end memory) is offered.
 //
 // Every wait is an RPC event, a filesystem change or a process exit with a bounded timeout. Evidence
 // is structured: the mock's request log, the parent session JSONL and every child transcript.
@@ -92,7 +97,7 @@ import {
   writeOmoConfig,
 } from "./kibitzer-sidecar-support.mjs"
 
-export const SCENARIOS = ["happy", "provider-429", "context-reseed", "category-unavailable", "refused-pinned-model", "cjk-auto", "query-expansion"]
+export const SCENARIOS = ["happy", "provider-429", "context-reseed", "category-unavailable", "refused-pinned-model", "cjk-auto", "query-expansion", "note-start", "note-start-off"]
 /** The pinned model the refused-pinned-model provider refuses, and the builtin quick rung it falls back to. */
 const REFUSED_MODEL = "refused-1"
 const BUILTIN_RUNG = { provider: "deepseek", id: "deepseek-flash" }
@@ -101,6 +106,8 @@ const CONFIG = {
   "category-unavailable": { categories: {} },
   "refused-pinned-model": { categories: { quick: { description: "QA pin outside the builtin quick chain", model: `omo-mock/${REFUSED_MODEL}` } } },
   "query-expansion": { recall: { query_expansion: true } },
+  "note-start": { recall: { note_start: true, max_items: 1 } },
+  "note-start-off": { recall: { max_items: 1 } },
 }
 /** A search whose own words match no seeded memory; only the added terms reach the helm memory. */
 const WIDENED_SEARCH = {
@@ -122,9 +129,26 @@ const KOREAN_PUBLISH = {
   body: "배포 토큰은 키체인에 저장한다.",
   prompt: "퍼블리시할 때 막히면 어디서 꺼내 써",
 }
+/** Two equal-length Korean memories that hold the prompt's word once: at the start, and past 1,000 characters. */
+// Distinct words: a repeated phrase trips the host's collapse-repetition stream rule while the memory is seeded.
+const NOTE_START_FILLER = Array.from({ length: 180 }, (_, index) => `item${index}`).join(" ") + " "
+const NOTE_START_DEEP = {
+  path: "reference/a-ops-ko.md",
+  description: "운영 메모",
+  body: `${NOTE_START_FILLER}롤백은 승인 후에만 한다.`,
+  prompt: "롤백 절차 알려줘",
+}
+const NOTE_START_HEAD = {
+  path: "reference/b-ops-ko.md",
+  description: "운영 메모",
+  body: `롤백은 승인 후에만 한다. ${NOTE_START_FILLER}`.trimEnd(),
+  prompt: "롤백 절차 알려줘",
+}
 /** Scenario-specific seed corpus; every other scenario seeds the two disjoint English memories. */
 const SEEDS = {
   "cjk-auto": [MEMORIES.rollout, MEMORIES.helm, KOREAN_PUBLISH],
+  "note-start": [NOTE_START_DEEP, NOTE_START_HEAD],
+  "note-start-off": [NOTE_START_DEEP, NOTE_START_HEAD],
 }
 /** A non-transient refusal: Devin's Connect trailer surfaces as `permission_denied`; an HTTP provider answers 403. */
 const PERMISSION_DENIED_STEP = {
@@ -594,7 +618,28 @@ async function runQueryExpansion({ session, state, identity, router, facts, pare
   }
 }
 
-const RUNNERS = { happy: runHappy, "provider-429": runProvider429, "context-reseed": runContextReseed, "category-unavailable": runCategoryUnavailable, "refused-pinned-model": runRefusedPinnedModel, "cjk-auto": runCjkAuto, "query-expansion": runQueryExpansion }
+// ---- note-start / note-start-off ---------------------------------------------------------------------------------
+
+function runNoteStart(expected) {
+  return async ({ session, state, identity, router, facts, parentTurns, record }) => {
+    router.setParentSteps([{ type: "text", text: "Checking." }, { type: "text", text: "Done." }])
+    router.setSidecarSteps([nudgeStep({ ...expected, body: "The note records that a rollback waits for approval." })])
+
+    await prompt(session, expected.prompt)
+    const held = await waitForAccepted(identity, state, expected, { description: `note-start: the ${expected.path} candidate was nudged` })
+    const lineage = sidecarDirs(identity)[0]
+    const candidates = candidatePathsOf(lineage === undefined ? "" : messageText(childTranscripts(lineage.dir)[0]?.users[0]))
+    record("one-candidate-offered", candidates.length === 1 && candidates[0] === expected.path, `candidates=${candidates.join(",")}`)
+    record("nudge-accepted", held.nudges.some((nudge) => nudge.path === expected.path), `held=${JSON.stringify(held)}`)
+
+    await prompt(session, expected.prompt)
+    const entries = readEntries(state.sessionFile)
+    record("nudge-reached-parent", nudgedPaths(entries).includes(expected.path) && entries.some(isRecall), `paths=${nudgedPaths(entries).join(",")} recallMessages=${entries.filter(isRecall).length}`)
+    facts.result = { candidates, nudgedPaths: nudgedPaths(entries), sidecarRequests: router.state.sidecar, parentRequests: parentTurns() }
+  }
+}
+
+const RUNNERS = { "note-start": runNoteStart(NOTE_START_HEAD), "note-start-off": runNoteStart(NOTE_START_DEEP), happy: runHappy, "provider-429": runProvider429, "context-reseed": runContextReseed, "category-unavailable": runCategoryUnavailable, "refused-pinned-model": runRefusedPinnedModel, "cjk-auto": runCjkAuto, "query-expansion": runQueryExpansion }
 
 // ---- main --------------------------------------------------------------------------------------------------------
 
