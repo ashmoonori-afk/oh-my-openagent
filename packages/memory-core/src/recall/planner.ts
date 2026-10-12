@@ -12,7 +12,7 @@
 // noise floor; non-ASCII terms keep a 2-char floor because scripts like Korean
 // pack a full content word into two syllables (e.g. 리콜, 검색).
 
-import { tokenizeRecallText } from "./bm25"
+import { recallTerms } from "./bm25"
 
 export const MAX_RECALL_QUERIES = 4
 
@@ -111,15 +111,16 @@ export function recallTermRarity(documents: RarityCorpus): RecallTermRarity {
   for (const document of documents) {
     const text = `${document.description}\n${document.body}`
     for (const term of new Set(tokenize(text))) frequency.set(term, (frequency.get(term) ?? 0) + 1)
-    for (const unit of new Set(tokenizeRecallText(text))) unitFrequency.set(unit, (unitFrequency.get(unit) ?? 0) + 1)
+    for (const unit of new Set(recallTerms(text))) unitFrequency.set(unit, (unitFrequency.get(unit) ?? 0) + 1)
   }
-  // A non-ASCII word with a particle or ending attached ("메모리를") is rarely a whole token in any note,
-  // but bm25 still meets it through its pieces: count it by its rarest piece that some note holds.
+  // A word that no note holds verbatim can still be found by bm25 through the units it indexes: an
+  // English inflection ("deployments") through its folded stem, a word with a particle or ending
+  // attached ("메모리를") through its pieces. Count such a word by its rarest unit some note holds.
   const documentFrequency = (term: string): number => {
     const whole = frequency.get(term) ?? 0
-    if (whole > 0 || ASCII_ONLY.test(term)) return whole
-    const pieces = tokenizeRecallText(term).map((unit) => unitFrequency.get(unit) ?? 0).filter((count) => count > 0)
-    return pieces.length === 0 ? 0 : Math.min(...pieces)
+    if (whole > 0) return whole
+    const units = recallTerms(term).map((unit) => unitFrequency.get(unit) ?? 0).filter((count) => count > 0)
+    return units.length === 0 ? 0 : Math.min(...units)
   }
   const rarity: RecallTermRarity = { documentFrequency, documentCount: documents.length }
   RARITY_CACHE.set(documents, rarity)

@@ -161,14 +161,14 @@ export function createMemoryRecallWiring(options: MemoryRecallWiringOptions): Me
     if (texts.length === 0 && extraTexts.length === 0) return undefined
     // recall.query_rarity: the planner picks the words that are rare in this memory, so the corpus loads
     // first. Off, the order and the plan are the length-ordered ones.
-    const repo = createRepo(context)
-    const preloaded = recall.query_rarity ? await corpusCache.load(repo) : undefined
+    const preloaded = recall.query_rarity ? await corpusCache.load(createRepo(context)) : undefined
     const planOptions = preloaded !== undefined && preloaded.documents.length > 0 ? { rarity: recallTermRarity(preloaded.documents) } : {}
     const queries = extraTexts.length === 0
       ? planRecallQueries(texts, planOptions)
       : planRecallQueries(texts, { toolTexts: [...extraTexts].reverse(), ...planOptions })
     if (queries.length === 0) return undefined
 
+    const repo = createRepo(context)
     const corpus = preloaded ?? await corpusCache.load(repo)
     if (corpus.documents.length === 0) return undefined
 

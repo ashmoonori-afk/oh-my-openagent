@@ -289,10 +289,23 @@ describe("planRecallQueries", () => {
       const plain = planRecallQueries([brief])
       const rare = planRecallQueries([brief], { rarity: recallTermRarity(notes) })
 
-      // then (the length order spends both single slots on boilerplate the whole memory shares)
+      // then (the length order spends both single slots on boilerplate the whole memory shares; with rarity
+      // the word one note holds is searched first, ahead of words ten notes share)
       expect(plain).not.toContain("quokkaline")
-      expect(rare).toContain("quokkaline")
+      expect(rare[0]).toBe("quokkaline")
       expect(rare).not.toContain("nonexistentword")
+    })
+
+    it("#given an English inflection no note holds verbatim #when queries are planned with rarity #then it is still searched through its stem", () => {
+      // given (bm25 folds "deployments" and "deployment" to one stem, so the selector would find the note; the
+      // message also holds a word the memory knows, so a word counted as unknown would be dropped)
+      const memory = [...notes, { description: "Deploy notes", body: "every deployment waits for the canary" }]
+
+      // when
+      const queries = planRecallQueries(["check the deployments of the quokkaline queue"], { rarity: recallTermRarity(memory) })
+
+      // then
+      expect(queries).toContain("deployments")
     })
 
     it("#given a message that is mostly Hangul #when queries are planned with rarity #then the plan is the length-ordered plan", () => {
