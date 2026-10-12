@@ -12,6 +12,8 @@
 // noise floor; non-ASCII terms keep a 2-char floor because scripts like Korean
 // pack a full content word into two syllables (e.g. 리콜, 검색).
 
+import { tokenizeRecallText } from "./bm25"
+
 export const MAX_RECALL_QUERIES = 4
 
 const MAX_SINGLE_TERMS = 2
@@ -82,28 +84,90 @@ interface TermRank {
   readonly length: number
 }
 
+/**
+ * How many memory notes hold each word, from the loaded corpus (recallTermRarity). Given it, the
+ * planner picks the words that are rare in this memory instead of the longest ones.
+ */
+export interface RecallTermRarity {
+  readonly documentFrequency: (term: string) => number
+  readonly documentCount: number
+}
+
+/** Single-term queries when the planner knows the memory's word rarity. */
+export const RARITY_SINGLE_TERMS = 6
+
+type RarityCorpus = readonly { readonly description: string; readonly body: string }[]
+const RARITY_CACHE = new WeakMap<RarityCorpus, RecallTermRarity>()
+
+/**
+ * Document frequency of every planner word over the loaded notes (description + body), computed once
+ * per corpus array and cached with it, so it follows the corpus revision and nothing is stored on disk.
+ */
+export function recallTermRarity(documents: RarityCorpus): RecallTermRarity {
+  const cached = RARITY_CACHE.get(documents)
+  if (cached !== undefined) return cached
+  const frequency = new Map<string, number>()
+  const unitFrequency = new Map<string, number>()
+  for (const document of documents) {
+    const text = `${document.description}\n${document.body}`
+    for (const term of new Set(tokenize(text))) frequency.set(term, (frequency.get(term) ?? 0) + 1)
+    for (const unit of new Set(tokenizeRecallText(text))) unitFrequency.set(unit, (unitFrequency.get(unit) ?? 0) + 1)
+  }
+  // A non-ASCII word with a particle or ending attached ("메모리를") is rarely a whole token in any note,
+  // but bm25 still meets it through its pieces: count it by its rarest piece that some note holds.
+  const documentFrequency = (term: string): number => {
+    const whole = frequency.get(term) ?? 0
+    if (whole > 0 || ASCII_ONLY.test(term)) return whole
+    const pieces = tokenizeRecallText(term).map((unit) => unitFrequency.get(unit) ?? 0).filter((count) => count > 0)
+    return pieces.length === 0 ? 0 : Math.min(...pieces)
+  }
+  const rarity: RecallTermRarity = { documentFrequency, documentCount: documents.length }
+  RARITY_CACHE.set(documents, rarity)
+  return rarity
+}
+
+/**
+ * Whether most letters of the text are outside ASCII (Korean, Japanese, Chinese...). Such a message keeps
+ * the length-ordered words: its words carry particles and endings, bm25 already meets them through their
+ * pieces, and swapping them for rare words lost Korean questions in the public benchmark.
+ */
+function mostlyNonAsciiLetters(text: string | undefined): boolean {
+  const letters = text?.match(/\p{L}/gu) ?? []
+  if (letters.length === 0) return false
+  return letters.filter((letter) => !ASCII_ONLY.test(letter)).length * 2 > letters.length
+}
+
+export interface PlanRecallOptions {
+  readonly toolTexts?: readonly string[]
+  /** The memory's word rarity; omitted, the plan is the length-ordered plan. */
+  readonly rarity?: RecallTermRarity
+}
+
 export function planRecallQueries(
   texts: readonly string[],
-  options?: { readonly toolTexts?: readonly string[] },
+  options?: PlanRecallOptions,
 ): readonly string[] {
   const tokenLists = texts.map(tokenize)
-  const singles = rankedTerms(tokenLists).slice(0, MAX_SINGLE_TERMS).map((entry) => entry.term)
+  const rarity = options?.rarity === undefined || mostlyNonAsciiLetters(texts[0]) ? undefined : options.rarity
+  const singles = rankedTerms(tokenLists, rarity)
+    .slice(0, rarity === undefined ? MAX_SINGLE_TERMS : RARITY_SINGLE_TERMS)
+    .map((entry) => entry.term)
   const toolTexts = options?.toolTexts
   if (toolTexts === undefined || toolTexts.length === 0) {
-    return [...singles, ...planPhrases(tokenLists)].slice(0, MAX_RECALL_QUERIES)
+    return [...singles, ...planPhrases(tokenLists, rarity)].slice(0, singles.length + MAX_PHRASES)
   }
 
   const userSingles = new Set(singles)
   const toolTokenLists = toolTexts.map(tokenize)
   const pathDerived = pathDerivedTerms(toolTexts)
-  const toolSingles = rankedTerms(toolTokenLists)
+  const toolSingles = rankedTerms(toolTokenLists, rarity)
     .filter((entry) => !userSingles.has(entry.term) && !COMMAND_STOPWORDS.has(entry.term))
     .sort((left, right) => Number(pathDerived.has(right.term)) - Number(pathDerived.has(left.term)))
     .slice(0, MAX_TOOL_SINGLE_TERMS)
     .map((entry) => entry.term)
 
-  return [...singles, ...toolSingles, ...planPhrases([...tokenLists, ...toolTokenLists])]
-    .slice(0, MAX_RECALL_QUERIES + MAX_TOOL_SINGLE_TERMS)
+  return [...singles, ...toolSingles, ...planPhrases([...tokenLists, ...toolTokenLists], rarity)]
+    .slice(0, singles.length + MAX_PHRASES + MAX_TOOL_SINGLE_TERMS)
 }
 
 function pathDerivedTerms(toolTexts: readonly string[]): ReadonlySet<string> {
@@ -115,7 +179,7 @@ function pathDerivedTerms(toolTexts: readonly string[]): ReadonlySet<string> {
   return terms
 }
 
-function rankedTerms(tokenLists: readonly string[][]): TermRank[] {
+function rankedTerms(tokenLists: readonly string[][], rarity?: RecallTermRarity): TermRank[] {
   const firstTextIndex = new Map<string, number>()
   const firstSequence = new Map<string, number>()
   const textCount = new Map<string, number>()
@@ -147,6 +211,20 @@ function rankedTerms(tokenLists: readonly string[][]): TermRank[] {
     }
   }
 
+  if (rarity !== undefined) {
+    // A word no note holds cannot find a note; the length order stays only when every word is unknown.
+    const known = pool.filter((entry) => rarity.documentFrequency(entry.term) > 0)
+    if (known.length > 0) {
+      const idf = (term: string): number => Math.log((rarity.documentCount + 1) / (rarity.documentFrequency(term) + 0.5))
+      return known.sort(
+        (left, right) =>
+          left.firstTextIndex - right.firstTextIndex
+          || idf(right.term) - idf(left.term)
+          || right.length - left.length
+          || left.firstSequence - right.firstSequence,
+      )
+    }
+  }
   return pool.sort(
     (left, right) =>
       left.firstTextIndex - right.firstTextIndex
@@ -157,15 +235,17 @@ function rankedTerms(tokenLists: readonly string[][]): TermRank[] {
 }
 
 /** Quoted bigram phrases from the newest text that has a verbatim kept pair. */
-function planPhrases(tokenLists: readonly string[][]): string[] {
+function planPhrases(tokenLists: readonly string[][], rarity?: RecallTermRarity): string[] {
   const phrases: string[] = []
   const seen = new Set<string>()
+  // With rarity, a phrase needs both words in some note: a pair no note can hold verbatim is skipped.
+  const known = (term: string): boolean => rarity === undefined || rarity.documentFrequency(term) > 0
   for (const tokens of tokenLists) {
     for (let index = 0; index + 1 < tokens.length; index += 1) {
       const left = tokens[index]
       const right = tokens[index + 1]
       if (left === undefined || right === undefined) continue
-      if (!isKeptTerm(left) || !isKeptTerm(right)) continue
+      if (!isKeptTerm(left) || !isKeptTerm(right) || !known(left) || !known(right)) continue
       const phrase = `${left} ${right}`
       if (seen.has(phrase)) continue
       seen.add(phrase)

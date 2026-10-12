@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test"
-import { planRecallQueries } from "./planner"
+import { planRecallQueries, recallTermRarity } from "./planner"
 
 describe("planRecallQueries", () => {
   it("#given no texts #when queries are planned #then no query is emitted", () => {
@@ -271,6 +271,36 @@ describe("planRecallQueries", () => {
 
       // then
       expect(queries).toEqual(["리콜", "검색", '"리콜 검색"'])
+    })
+  })
+
+  describe("with the memory's word rarity", () => {
+    // Ten notes share brief boilerplate; one note names the project the brief is about.
+    const notes = [
+      ...Array.from({ length: 10 }, (_, index) => ({ description: `Brief ${index}`, body: "independently implementation verification executable reviewer" })),
+      { description: "Quokkaline orders", body: "quokkaline order inquiries and staff rules" },
+    ]
+
+    it("#given a long brief that names its project once #when queries are planned with rarity #then the project word is searched and words no note holds are not", () => {
+      // given
+      const brief = "Independently re-run the executable verification for the implementation reviewer; the quokkaline queue is waiting on a nonexistentword."
+
+      // when
+      const plain = planRecallQueries([brief])
+      const rare = planRecallQueries([brief], { rarity: recallTermRarity(notes) })
+
+      // then (the length order spends both single slots on boilerplate the whole memory shares)
+      expect(plain).not.toContain("quokkaline")
+      expect(rare).toContain("quokkaline")
+      expect(rare).not.toContain("nonexistentword")
+    })
+
+    it("#given a message that is mostly Hangul #when queries are planned with rarity #then the plan is the length-ordered plan", () => {
+      // given
+      const message = "쿼카라인 주문 문의 규칙을 다시 정리해 줘 quokkaline"
+
+      // when / then
+      expect(planRecallQueries([message], { rarity: recallTermRarity(notes) })).toEqual(planRecallQueries([message]))
     })
   })
 })
