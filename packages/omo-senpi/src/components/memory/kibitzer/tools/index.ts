@@ -40,6 +40,8 @@ export interface KibitzerSidecarToolsInput {
     readonly cache?: RecallCorpusCache
     /** `memory.recall.query_expansion`; the search accepts no added terms when omitted. */
     readonly queryExpansion?: boolean
+    /** `memory.recall.note_start`; the search weights every body term alike when omitted. */
+    readonly noteStart?: boolean
   }
   readonly nudge: {
     readonly offered: ReadonlySet<string>
@@ -73,6 +75,7 @@ export function createKibitzerSidecarTools(input: KibitzerSidecarToolsInput): Ki
       budget: input.budget,
       searchedPaths,
       queryExpansion: input.memory.queryExpansion === true,
+      noteStart: input.memory.noteStart === true,
     }),
     createKibitzerSidecarNudgeTool({ ...input.nudge, searched: searchedPaths, budget: input.budget }),
   ]

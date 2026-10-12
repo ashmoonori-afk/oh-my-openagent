@@ -20,6 +20,8 @@ export interface KibitzerSidecarSettings {
   readonly eventCaps: KibitzerEventCaps
   /** `memory.recall.query_expansion`: whether the memory tool's search accepts added terms. Off by default. */
   readonly queryExpansion: boolean
+  /** `memory.recall.note_start`: whether the memory tool's search weights each note's start. Off by default. */
+  readonly noteStart: boolean
 }
 
 export function resolveKibitzerSidecarSettings(recall: OmoMemoryRecall): KibitzerSidecarSettings {
@@ -35,5 +37,6 @@ export function resolveKibitzerSidecarSettings(recall: OmoMemoryRecall): Kibitze
       prompt: recall.event_caps.prompt,
     },
     queryExpansion: recall.query_expansion,
+    noteStart: recall.note_start,
   }
 }

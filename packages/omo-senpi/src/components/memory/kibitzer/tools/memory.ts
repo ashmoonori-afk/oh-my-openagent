@@ -1,4 +1,5 @@
 import {
+  RECALL_NOTE_START_BOOST,
   RecallCorpusCache,
   selectRecallCandidates,
   type GitMemoryRepo,
@@ -52,6 +53,8 @@ export interface KibitzerMemoryToolInput {
   readonly searchedPaths: Set<string>
   /** `memory.recall.query_expansion`. Off, the tool has the two-field search it always had. */
   readonly queryExpansion?: boolean
+  /** `memory.recall.note_start`. Off, every body term weighs the same, as it always did. */
+  readonly noteStart?: boolean
 }
 
 export interface KibitzerMemorySearchHit {
@@ -121,6 +124,7 @@ function search(query: string | undefined, added: ExpansionArguments | undefined
     maxItems: input.caps.memorySearchResults + 1,
     surfaced: new Set(),
     ...(expansions === undefined ? {} : { expansions }),
+    ...(input.noteStart === true ? { noteStart: RECALL_NOTE_START_BOOST } : {}),
   })
   const truncated = selected.length > input.caps.memorySearchResults
   const results: KibitzerMemorySearchHit[] = selected.slice(0, input.caps.memorySearchResults).map((candidate) => ({

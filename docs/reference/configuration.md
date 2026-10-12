@@ -678,6 +678,7 @@ relying on it, and expanding the entry shows that caveat.
 | `recall.max_concurrent_wakes` | `2` | Machine-wide cap on wakes running at once |
 | `recall.tool_budget` | `8` | Read-only tool calls one wake may make before it is cut off |
 | `recall.query_expansion` | `false` | Let the sidecar add synonyms, keywords in your other languages and related terms to its own memory searches; each counts for less than a query word |
+| `recall.note_start` | `false` | Weight each note's start (description and first 1,000 body characters, 5x) above the rest of its body when ranking recall candidates and the sidecar's memory searches; the whole body stays searchable |
 
 Like the other memory blocks, every recall option can be overridden per agent under
 `memory.agents.<name>.recall`; `event_caps` merges field by field.

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// omo-codex-install:d4760953e82ff7182c54f5a9435f29e953cae69458faac5a49841a618a72e8b0:998a0bc6d14bfc3b7214691f5912e7abb192ca92c553e844b7a5dc5d9e57b084
+// omo-codex-install:7ac435d1614c6658bd675ff2353deb2b76a6ccb12b5394211426eb47f58d96e9:7e503d37e7ac225ea6267515a38952e1bbf577e416ae21a098c162a2f2c2b772
 var __esm = (fn, res, err) => () => {
   if (fn)
     try {
@@ -19461,7 +19461,8 @@ var OmoMemoryRecallSchema = object({
   sidecar_max_tokens: number2().int().positive().default(48000),
   max_concurrent_wakes: number2().int().positive().default(2),
   tool_budget: number2().int().positive().default(8),
-  query_expansion: boolean2().default(false)
+  query_expansion: boolean2().default(false),
+  note_start: boolean2().default(false)
 }).strict();
 var OmoMemoryNudgeSchema = object({
   enabled: boolean2().default(true),
@@ -19524,7 +19525,8 @@ var OmoMemoryRecallLayerSchema = object({
   sidecar_max_tokens: number2().int().positive().optional(),
   max_concurrent_wakes: number2().int().positive().optional(),
   tool_budget: number2().int().positive().optional(),
-  query_expansion: boolean2().optional()
+  query_expansion: boolean2().optional(),
+  note_start: boolean2().optional()
 }).strict();
 var OmoMemoryNudgeLayerSchema = object({
   enabled: boolean2().optional(),
@@ -19612,7 +19614,8 @@ var OmoMemorySettingsSchema = object({
     sidecar_max_tokens: 48000,
     max_concurrent_wakes: 2,
     tool_budget: 8,
-    query_expansion: false
+    query_expansion: false,
+    note_start: false
   }),
   projection: OmoMemoryProjectionSchema.default({ max_entries_per_directory: 40, max_bytes: 24576 }),
   compile_warn_tokens: number2().int().positive().default(30000),

@@ -17,6 +17,7 @@ import type { OmoMemoryRecall, OmoMemorySettings } from "@oh-my-opencode/omo-con
 import {
   GitMemoryRepo,
   PendingNudges,
+  RECALL_NOTE_START_BOOST,
   RecallCorpusCache,
   RecallLedger,
   planRecallQueries,
@@ -182,6 +183,7 @@ export function createMemoryRecallWiring(options: MemoryRecallWiringOptions): Me
       maxItems: recall.max_items,
       surfaced,
       excludePaths,
+      ...(recall.note_start ? { noteStart: RECALL_NOTE_START_BOOST } : {}),
     })
     if (candidates.length === 0) return undefined
     return {
