@@ -11,6 +11,7 @@ import {
   recallExpansionWeights,
   recallTerms,
   tokenizeRecallText,
+  type RecallNoteStartBoost,
   type RecallQueryExpansions,
 } from "./bm25"
 import { normalizedHaystack } from "./haystack"
@@ -40,9 +41,15 @@ export interface SelectRecallOptions {
    * empty, the selection is exactly what it is without the option.
    */
   readonly expansions?: RecallQueryExpansions
+  /**
+   * Weight the start of each note (description and the first characters of the body) above the
+   * rest of its body in the bm25 ranking (bm25.ts). Omitted, the selection is exactly what it is
+   * without the option.
+   */
+  readonly noteStart?: RecallNoteStartBoost
 }
 
-export { RECALL_EXPANSION_WEIGHTS, type RecallQueryExpansions } from "./bm25"
+export { RECALL_EXPANSION_WEIGHTS, RECALL_NOTE_START_BOOST, type RecallNoteStartBoost, type RecallQueryExpansions } from "./bm25"
 
 /** Reciprocal rank fusion constant (Cormack et al.); 60 is the customary value. */
 const RRF_K = 60
@@ -181,7 +188,7 @@ function rankBm25(
   const addedHanCharacters = added.filter(isHanCharacter)
   const candidates: RecallCandidate[] = []
   const fullMatches: string[] = []
-  for (const { document, score, fullMatch } of rankRecallDocumentsBm25(documents, queries, expansions)) {
+  for (const { document, score, fullMatch } of rankRecallDocumentsBm25(documents, queries, expansions, options.noteStart)) {
     if (isExcluded(document.path, options)) continue
     if (fullMatch === true) fullMatches.push(document.path)
     candidates.push({

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test"
 import type { RecallDocument } from "./provider"
-import { RECALL_EXPANSION_WEIGHTS, rankRecallDocumentsBm25, recallExpansionWeights, tokenizeRecallText } from "./bm25"
+import { RECALL_EXPANSION_WEIGHTS, RECALL_NOTE_START_BOOST, rankRecallDocumentsBm25, recallExpansionWeights, tokenizeRecallText } from "./bm25"
 
 function doc(path: string, description: string, body: string): RecallDocument {
   return { path, description, body }
@@ -453,5 +453,51 @@ describe("recallExpansionWeights", () => {
     expect(RECALL_EXPANSION_WEIGHTS.keywords).toBeLessThan(1)
     expect(RECALL_EXPANSION_WEIGHTS.related).toBeLessThan(RECALL_EXPANSION_WEIGHTS.synonyms)
     expect(RECALL_EXPANSION_WEIGHTS.noteLine).toBeLessThan(RECALL_EXPANSION_WEIGHTS.keywords)
+  })
+})
+
+describe("rankRecallDocumentsBm25 with the note-start boost", () => {
+  const filler = "lorem ".repeat(300)
+  const documents = [
+    doc("notes/a-deep.md", "cluster notes", `${filler}kubernetes`),
+    doc("notes/b-head.md", "cluster notes", `kubernetes ${filler}`),
+  ]
+
+  it("#given two notes holding a query word once at the end and once at the start #when ranked without the boost #then they tie and keep the path order", () => {
+    // given
+    const queries = ["kubernetes"]
+
+    // when
+    const ranked = rankRecallDocumentsBm25(documents, queries)
+
+    // then
+    expect(ranked.map((entry) => entry.document.path)).toEqual(["notes/a-deep.md", "notes/b-head.md"])
+    expect(ranked[0]?.score).toBe(ranked[1]?.score)
+  })
+
+  it("#given the same notes #when ranked with the boost #then the note that opens with the word ranks first and the deep match is still found", () => {
+    // given
+    const queries = ["kubernetes"]
+
+    // when
+    const ranked = rankRecallDocumentsBm25(documents, queries, undefined, RECALL_NOTE_START_BOOST)
+
+    // then
+    expect(ranked.map((entry) => entry.document.path)).toEqual(["notes/b-head.md", "notes/a-deep.md"])
+    expect(ranked[0]!.score).toBeGreaterThan(ranked[1]!.score)
+  })
+
+  it("#given a corpus ranked with the boost first #when ranked again without it #then the plain ranking is unchanged", () => {
+    // given
+    const queries = ["kubernetes lorem"]
+    const plainBefore = rankRecallDocumentsBm25(documents.slice(), queries)
+    const shared = documents.slice()
+    rankRecallDocumentsBm25(shared, queries, undefined, RECALL_NOTE_START_BOOST)
+
+    // when
+    const plainAfter = rankRecallDocumentsBm25(shared, queries)
+
+    // then
+    expect(plainAfter.map(({ document, score }) => [document.path, score])).toEqual(plainBefore.map(({ document, score }) => [document.path, score]))
   })
 })

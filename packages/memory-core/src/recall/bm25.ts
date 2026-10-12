@@ -101,14 +101,41 @@ export function recallTerms(text: string): string[] {
 }
 
 /**
- * One index per document array. RecallCorpusCache hands out the same array for as long as HEAD has
- * not moved, so the index is built once per corpus revision and a moved HEAD (a fresh array) drops it.
- * The array must not be mutated after it is first ranked: an in-place change keeps the stale index.
+ * Extra weight for the start of a note, the place where a note says what it is about. The whole body
+ * stays indexed, so a passage deep in a long note is still found; the description and the first
+ * `headChars` characters of the body count `headWeight` times instead of once. Lengths stay the body's
+ * own, so a long note is not penalized for its boosted start. Everything is derived from the note
+ * content when the corpus is loaded; nothing is stored next to the note.
+ */
+export interface RecallNoteStartBoost {
+  readonly headChars: number
+  readonly headWeight: number
+}
+
+/**
+ * The boost `memory.recall.note_start` turns on. Chosen on the public #9957-method set (omo's own
+ * Markdown, 90 questions plus 30 whose answers sit past the first 4,500 characters) as the setting
+ * that lifts Recall@5 on both slices without losing a Recall@1 or Recall@10 hit; weighting path words
+ * as well added nothing and was left out. See packages/omo-senpi/scripts/qa/memory-recall-ab.mjs.
+ */
+export const RECALL_NOTE_START_BOOST: RecallNoteStartBoost = { headChars: 1000, headWeight: 5 }
+
+/**
+ * One index per document array (and per boost). RecallCorpusCache hands out the same array for as long
+ * as HEAD has not moved, so the index is built once per corpus revision and a moved HEAD (a fresh
+ * array) drops it. The array must not be mutated after it is first ranked: an in-place change keeps
+ * the stale index.
  */
 const INDEXES = new WeakMap<readonly RecallDocument[], RecallBm25Index>()
+const BOOSTED_INDEXES = new WeakMap<readonly RecallDocument[], Map<string, RecallBm25Index>>()
 
-function indexFor(documents: readonly RecallDocument[]): RecallBm25Index {
-  const cached = INDEXES.get(documents)
+function addTerms(frequencies: Map<string, number>, text: string, weight: number): void {
+  for (const token of tokenizeRecallText(text).map(stemEnglishToken)) frequencies.set(token, (frequencies.get(token) ?? 0) + weight)
+}
+
+function indexFor(documents: readonly RecallDocument[], boost?: RecallNoteStartBoost): RecallBm25Index {
+  const boostKey = boost === undefined ? undefined : `${boost.headChars}:${boost.headWeight}`
+  const cached = boostKey === undefined ? INDEXES.get(documents) : BOOSTED_INDEXES.get(documents)?.get(boostKey)
   if (cached !== undefined) return cached
 
   const termFrequencies: Map<string, number>[] = []
@@ -118,6 +145,9 @@ function indexFor(documents: readonly RecallDocument[]): RecallBm25Index {
     const frequencies = new Map<string, number>()
     const { tokens, standaloneHanCharacters } = tokenize(`${document.description}\n${document.body}`)
     for (const token of tokens.map(stemEnglishToken)) frequencies.set(token, (frequencies.get(token) ?? 0) + 1)
+    if (boost !== undefined && boost.headWeight > 1) {
+      addTerms(frequencies, `${document.description}\n${document.body.slice(0, boost.headChars)}`, boost.headWeight - 1)
+    }
     for (const token of frequencies.keys()) documentFrequency.set(token, (documentFrequency.get(token) ?? 0) + 1)
     termFrequencies.push(frequencies)
     // The stand-alone Han characters repeat text the run and its bigrams already count. Leaving them out
@@ -132,7 +162,12 @@ function indexFor(documents: readonly RecallDocument[]): RecallBm25Index {
     documentFrequency,
     averageLength: documents.length === 0 ? 0 : totalLength / documents.length,
   }
-  INDEXES.set(documents, index)
+  if (boostKey === undefined) INDEXES.set(documents, index)
+  else {
+    const byBoost = BOOSTED_INDEXES.get(documents) ?? new Map<string, RecallBm25Index>()
+    byBoost.set(boostKey, index)
+    BOOSTED_INDEXES.set(documents, byBoost)
+  }
   return index
 }
 
@@ -202,11 +237,12 @@ export function rankRecallDocumentsBm25(
   documents: readonly RecallDocument[],
   queries: readonly string[],
   expansions?: RecallQueryExpansions,
+  noteStart?: RecallNoteStartBoost,
 ): RankedRecallDocument[] {
   const queryTerms = [...new Set(queries.flatMap(recallTerms))]
   if (queryTerms.length === 0 || documents.length === 0) return []
 
-  const index = indexFor(documents)
+  const index = indexFor(documents, noteStart)
   const averageLength = index.averageLength > 0 ? index.averageLength : 1
   const termScore = (term: string, frequencies: ReadonlyMap<string, number>, length: number): number => {
     const frequency = frequencies.get(term)
