@@ -6,7 +6,7 @@
 // One arm per process, so a process holds one corpus and one index:
 //
 //   build    turn a folder of Markdown files into a git memory repo (path = reference/<relative path>,
-//            description = first heading or first line). Your real memory repo needs no build step.
+//            description = first heading or first line; --exclude a,b skips those relative folders). Your real memory repo needs no build step.
 //   run      --arm off  : today's ranking (memory.recall.note_start off)
 //            --arm on   : the note-start weighting (memory.recall.note_start on)
 //            --code-root <checkout> measures another checkout's memory-core instead of this one (for
@@ -64,13 +64,14 @@ function describe(content, fallback) {
 }
 const clip = (text) => text.replace(/\s+/g, " ").trim().slice(0, 200).trim() || "untitled"
 
-function* markdownFiles(dir, root = dir) {
+function* markdownFiles(dir, root = dir, excluded = []) {
   for (const name of readdirSync(dir).sort()) {
     if (name === "node_modules" || name === ".git") continue
     const full = join(dir, name)
+    if (excluded.includes(relative(root, full))) continue
     const entry = lstatSync(full)
     // Symlinks are skipped, so a mirrored folder is not indexed twice.
-    if (entry.isDirectory()) yield* markdownFiles(full, root)
+    if (entry.isDirectory()) yield* markdownFiles(full, root, excluded)
     else if (entry.isFile() && name.endsWith(".md")) yield relative(root, full)
   }
 }
@@ -79,7 +80,8 @@ async function build() {
   const { GitMemoryRepo, renderMemoryFile } = await loadCore()
   const source = resolve(flag("markdown"))
   const seedFiles = []
-  for (const path of markdownFiles(source)) {
+  const excluded = (flag("exclude") ?? "").split(",").filter(Boolean)
+  for (const path of markdownFiles(source, source, excluded)) {
     const content = readFileSync(join(source, path), "utf8")
     seedFiles.push({ relativePath: `reference/${path}`, content: renderMemoryFile({ description: describe(content, path) }, content) })
   }
