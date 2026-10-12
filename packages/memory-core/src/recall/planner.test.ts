@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test"
 import { planRecallQueries, recallTermRarity } from "./planner"
+import { selectRecallCandidates } from "./select"
 
 describe("planRecallQueries", () => {
   it("#given no texts #when queries are planned #then no query is emitted", () => {
@@ -306,6 +307,21 @@ describe("planRecallQueries", () => {
 
       // then
       expect(queries).toContain("deployments")
+    })
+
+    it("#given a short word the substring scorer meets inside a longer word #when recall selects with rarity #then that note is still found", () => {
+      // given (no note holds "auth" as a word or stem, but "authentication" contains it; a small English memory
+      // uses the substring scorer, where today's plan finds both notes)
+      const memory = [
+        { path: "reference/auth.md", description: "Authentication setup", body: "Tokens rotate weekly." },
+        { path: "reference/cache.md", description: "Cache operations", body: "Flush the cache on deploy." },
+      ]
+
+      // when
+      const found = selectRecallCandidates(memory, planRecallQueries(["auth cache"], { rarity: recallTermRarity(memory) }), { maxItems: 5, surfaced: new Set() })
+
+      // then
+      expect(found.map((candidate) => candidate.path).sort()).toEqual(["reference/auth.md", "reference/cache.md"])
     })
 
     it("#given a message that is mostly Hangul #when queries are planned with rarity #then the plan is the length-ordered plan", () => {

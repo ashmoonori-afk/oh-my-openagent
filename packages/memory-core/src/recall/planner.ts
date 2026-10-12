@@ -213,18 +213,18 @@ function rankedTerms(tokenLists: readonly string[][], rarity?: RecallTermRarity)
   }
 
   if (rarity !== undefined) {
-    // A word no note holds cannot find a note; the length order stays only when every word is unknown.
+    // Words some note holds go first, rarest first; words no note holds keep the length order after them.
+    // They are not dropped: the substring scorer can still meet them inside a longer word ("auth" in
+    // "authentication"), so they take any slot the known words leave.
+    const idf = (term: string): number => Math.log((rarity.documentCount + 1) / (rarity.documentFrequency(term) + 0.5))
+    const byPosition = (left: TermRank, right: TermRank): number => left.firstTextIndex - right.firstTextIndex
+    const byLength = (left: TermRank, right: TermRank): number =>
+      left.textCount - right.textCount || right.length - left.length || left.firstSequence - right.firstSequence
     const known = pool.filter((entry) => rarity.documentFrequency(entry.term) > 0)
-    if (known.length > 0) {
-      const idf = (term: string): number => Math.log((rarity.documentCount + 1) / (rarity.documentFrequency(term) + 0.5))
-      return known.sort(
-        (left, right) =>
-          left.firstTextIndex - right.firstTextIndex
-          || idf(right.term) - idf(left.term)
-          || right.length - left.length
-          || left.firstSequence - right.firstSequence,
-      )
-    }
+      .sort((left, right) => byPosition(left, right) || idf(right.term) - idf(left.term) || byLength(left, right))
+    const unknown = pool.filter((entry) => rarity.documentFrequency(entry.term) === 0)
+      .sort((left, right) => byPosition(left, right) || byLength(left, right))
+    return [...known, ...unknown]
   }
   return pool.sort(
     (left, right) =>
@@ -239,7 +239,7 @@ function rankedTerms(tokenLists: readonly string[][], rarity?: RecallTermRarity)
 function planPhrases(tokenLists: readonly string[][], rarity?: RecallTermRarity): string[] {
   const phrases: string[] = []
   const seen = new Set<string>()
-  // With rarity, a phrase needs both words in some note: a pair no note can hold verbatim is skipped.
+  // With rarity, a phrase needs each of its words held by some note.
   const known = (term: string): boolean => rarity === undefined || rarity.documentFrequency(term) > 0
   for (const tokens of tokenLists) {
     for (let index = 0; index + 1 < tokens.length; index += 1) {
