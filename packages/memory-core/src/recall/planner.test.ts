@@ -314,6 +314,22 @@ describe("planRecallQueries", () => {
       expect(queries).toContain("deployments")
     })
 
+    it("#given a word one note holds verbatim whose stem many notes share #when queries are planned with rarity #then it counts by its own form", () => {
+      // given (stems fold "staged" with "stage": counted by stem it would look as common as the ten stage notes and
+      // lose its slot to seven words two notes each hold; counted by its own form it is the rarest word)
+      const memory = [
+        ...Array.from({ length: 10 }, (_, index) => ({ path: `reference/stage-${index}.md`, description: `Stage ${index}`, body: "the stage plan" })),
+        { path: "reference/staged.md", description: "Rollout", body: "the rollout is staged by region" },
+        ...Array.from({ length: 2 }, (_, index) => ({ path: `reference/radio-${index}.md`, description: `Radio ${index}`, body: "alpha bravo charlie delta echo foxtrot golf" })),
+      ]
+
+      // when
+      const queries = planRecallQueries(["staged alpha bravo charlie delta echo foxtrot golf"], { rarity: recallTermRarity(memory) })
+
+      // then
+      expect(queries).toContain("staged")
+    })
+
     it("#given a short word the substring scorer meets inside a longer word #when recall selects with rarity #then that note is still found", () => {
       // given (no note holds "auth" as a word or stem, but "authentication" contains it; a small English memory
       // uses the substring scorer, where today's plan finds both notes)
