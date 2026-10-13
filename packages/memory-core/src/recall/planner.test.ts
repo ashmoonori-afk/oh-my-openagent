@@ -278,8 +278,8 @@ describe("planRecallQueries", () => {
   describe("with the memory's word rarity", () => {
     // Ten notes share brief boilerplate; one note names the project the brief is about.
     const notes = [
-      ...Array.from({ length: 10 }, (_, index) => ({ description: `Brief ${index}`, body: "independently implementation verification executable reviewer" })),
-      { description: "Quokkaline orders", body: "quokkaline order inquiries and staff rules" },
+      ...Array.from({ length: 10 }, (_, index) => ({ path: `reference/brief-${index}.md`, description: `Brief ${index}`, body: "independently implementation verification executable reviewer" })),
+      { path: "reference/quokkaline.md", description: "Quokkaline orders", body: "quokkaline order inquiries and staff rules" },
     ]
 
     it("#given a long brief that names its project once #when queries are planned with rarity #then the project word is searched and words no note holds are not", () => {
@@ -298,12 +298,17 @@ describe("planRecallQueries", () => {
     })
 
     it("#given an English inflection no note holds verbatim #when queries are planned with rarity #then it is still searched through its stem", () => {
-      // given (bm25 folds "deployments" and "deployment" to one stem, so the selector would find the note; the
-      // message also holds a word the memory knows, so a word counted as unknown would be dropped)
-      const memory = [...notes, { description: "Deploy notes", body: "every deployment waits for the canary" }]
+      // given (bm25 folds "deployments" and "deployment" to one stem, so the selector would find the note. The
+      // message also holds seven words one note each holds, more than the six single slots, so a word counted
+      // as unknown would be pushed out instead of filling a spare slot)
+      const memory = [
+        ...notes,
+        { path: "reference/deploy.md", description: "Deploy notes", body: "every deployment waits for the canary" },
+        { path: "reference/radio.md", description: "Radio alphabet", body: "alpha bravo charlie delta echo foxtrot golf" },
+      ]
 
       // when
-      const queries = planRecallQueries(["check the deployments of the quokkaline queue"], { rarity: recallTermRarity(memory) })
+      const queries = planRecallQueries(["check the deployments for alpha bravo charlie delta echo foxtrot golf"], { rarity: recallTermRarity(memory) })
 
       // then
       expect(queries).toContain("deployments")
@@ -322,6 +327,20 @@ describe("planRecallQueries", () => {
 
       // then
       expect(found.map((candidate) => candidate.path).sort()).toEqual(["reference/auth.md", "reference/cache.md"])
+    })
+
+    it("#given a phrase holding a word no note holds #when queries are planned with rarity #then the phrase is skipped and the next held pair is used", () => {
+      // given (without rarity the first adjacent pair becomes a phrase whatever the memory holds)
+      const message = "flurbish quokkaline staff rules"
+
+      // when
+      const plain = planRecallQueries([message])
+      const rare = planRecallQueries([message], { rarity: recallTermRarity(notes) })
+
+      // then
+      expect(plain).toContain('"flurbish quokkaline"')
+      expect(rare).not.toContain('"flurbish quokkaline"')
+      expect(rare).toContain('"quokkaline staff"')
     })
 
     it("#given a message that is mostly Hangul #when queries are planned with rarity #then the plan is the length-ordered plan", () => {

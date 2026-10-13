@@ -123,6 +123,23 @@ describe("resolveAgentRecallSettings", () => {
 })
 
 describe("createMemoryRecallWiring collectCandidates", () => {
+  test.each([{ queryRarity: true }, { queryRarity: false }])("#given a long brief that names its project once #when candidates are collected with query_rarity $queryRarity #then the project note is offered only with rarity", async ({ queryRarity }) => {
+    // given (ten notes share the brief's long words; one note names the project the brief mentions once)
+    const briefs = ["alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel", "india", "juliet"].map((word, index) => ({
+      relativePath: `reference/brief-${word}.md`,
+      content: `---\ndescription: Brief ${word} checklist\n---\nThe ${word} reviewer signs off on the implementation after an executable check; each step runs independently of step ${index}.`,
+    }))
+    const project = { relativePath: "reference/quokkaline-orders.md", content: "---\ndescription: Quokkaline order rules\n---\nQuokkaline orders wait for staff approval; inquiries go to the order channel." }
+    const { repo, context } = await fixture(tempDirs, [...briefs, project])
+    const wiring = wiringFor({ repo, identity: context, recall: { max_items: 2, query_rarity: queryRarity } })
+
+    // when
+    const collected = await wiring.collectCandidates(eventContext([userEntry("m1", "Independently rerun the executable verification for the implementation reviewer, then check whether the quokkaline queue is clear.")]))
+
+    // then
+    expect(collected?.candidates.map((candidate) => candidate.path).includes(project.relativePath)).toBe(queryRarity)
+  }, 30_000)
+
   test("#given a settled session matching the corpus #when candidates are collected #then the matching path is returned", async () => {
     // given
     const { repo, context } = await fixture(tempDirs)

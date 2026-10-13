@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-**Memory recall searches a long message by its rarest words.** Recall now picks the words of its search by how few of your notes hold them (up to 6) instead of the two longest words of the newest message, so the topic of a long brief or resume message is no longer buried under boilerplate the whole memory shares; on 29 labeled real recall events the right note reached the two candidates the Kibitzer judge sees 18 times instead of 6. Messages written mostly in Korean, Japanese or Chinese keep the previous search, and `memory.recall.query_rarity: false` restores it everywhere. ([#10037](https://github.com/code-yeongyu/oh-my-openagent/issues/10037), [#10043](https://github.com/code-yeongyu/oh-my-openagent/pull/10043))
+**Memory recall searches a long message by its rarest words.** Recall now picks the words of its search by how few of your notes hold them (up to 6) instead of the two longest words of the newest message, so the topic of a long brief or resume message is no longer buried under boilerplate the whole memory shares; on the published 90-question benchmark R@5 rises from 0.356 to 0.444 (MRR 0.248 to 0.315), and on 38 labeled real recall events the right note reaches the two candidates the Kibitzer judge sees 18 times instead of 10. Messages written mostly in Korean, Japanese or Chinese keep the previous search, and `memory.recall.query_rarity: false` restores it everywhere. ([#10037](https://github.com/code-yeongyu/oh-my-openagent/issues/10037), [#10043](https://github.com/code-yeongyu/oh-my-openagent/pull/10043))
 
 ## [5.1.32] - 2026-10-12
 

@@ -1,8 +1,8 @@
 // Recall query planner: turns newest-first conversation texts into a handful of
 // short lexical queries for the AND-semantics FTS-lite scorer (search/query.ts).
 // Every term AND every phrase of a query must substring-match a document, so
-// queries stay tiny: one or two distinctive single terms, plus quoted bigram
-// phrases of adjacent kept terms (verbatim adjacency, never spanning a
+// queries stay tiny: two single terms (up to six when the memory's word rarity is known), plus quoted
+// bigram phrases of adjacent kept terms (verbatim adjacency, never spanning a
 // stopword). Pure and deterministic; the same input always yields the same
 // queries.
 //
@@ -12,9 +12,8 @@
 // noise floor; non-ASCII terms keep a 2-char floor because scripts like Korean
 // pack a full content word into two syllables (e.g. 리콜, 검색).
 
-import { recallTerms } from "./bm25"
-
-export const MAX_RECALL_QUERIES = 4
+import { recallDocumentFrequency, recallTerms } from "./bm25"
+import type { RecallDocument } from "./provider"
 
 const MAX_SINGLE_TERMS = 2
 const MAX_TOOL_SINGLE_TERMS = 2
@@ -96,33 +95,27 @@ export interface RecallTermRarity {
 /** Single-term queries when the planner knows the memory's word rarity. */
 export const RARITY_SINGLE_TERMS = 6
 
-type RarityCorpus = readonly { readonly description: string; readonly body: string }[]
-const RARITY_CACHE = new WeakMap<RarityCorpus, RecallTermRarity>()
+const RARITY_CACHE = new WeakMap<readonly RecallDocument[], RecallTermRarity>()
 
 /**
- * Document frequency of every planner word over the loaded notes (description + body), computed once
- * per corpus array and cached with it, so it follows the corpus revision and nothing is stored on disk.
+ * How many notes hold each planner word, read from the bm25 index's document frequencies (one
+ * tokenization pass per corpus revision, shared with the ranking; nothing stored on disk). A word counts
+ * by its own form first: stems fold ordinary words together ("presented" with "present") and would make
+ * them look common. A word no note holds verbatim counts by the rarest unit bm25 indexes for it that some
+ * note holds: an English inflection ("deployments") through its folded stem, a word with a particle or
+ * ending attached ("메모리를") through its pieces.
  */
-export function recallTermRarity(documents: RarityCorpus): RecallTermRarity {
+export function recallTermRarity(documents: readonly RecallDocument[]): RecallTermRarity {
   const cached = RARITY_CACHE.get(documents)
   if (cached !== undefined) return cached
-  const frequency = new Map<string, number>()
-  const unitFrequency = new Map<string, number>()
-  for (const document of documents) {
-    const text = `${document.description}\n${document.body}`
-    for (const term of new Set(tokenize(text))) frequency.set(term, (frequency.get(term) ?? 0) + 1)
-    for (const unit of new Set(recallTerms(text))) unitFrequency.set(unit, (unitFrequency.get(unit) ?? 0) + 1)
-  }
-  // A word that no note holds verbatim can still be found by bm25 through the units it indexes: an
-  // English inflection ("deployments") through its folded stem, a word with a particle or ending
-  // attached ("메모리를") through its pieces. Count such a word by its rarest unit some note holds.
+  const { unitFrequency, surfaceFrequency, documentCount } = recallDocumentFrequency(documents)
   const documentFrequency = (term: string): number => {
-    const whole = frequency.get(term) ?? 0
+    const whole = surfaceFrequency.get(term) ?? 0
     if (whole > 0) return whole
     const units = recallTerms(term).map((unit) => unitFrequency.get(unit) ?? 0).filter((count) => count > 0)
     return units.length === 0 ? 0 : Math.min(...units)
   }
-  const rarity: RecallTermRarity = { documentFrequency, documentCount: documents.length }
+  const rarity: RecallTermRarity = { documentFrequency, documentCount }
   RARITY_CACHE.set(documents, rarity)
   return rarity
 }
@@ -216,12 +209,11 @@ function rankedTerms(tokenLists: readonly string[][], rarity?: RecallTermRarity)
     // Words some note holds go first, rarest first; words no note holds keep the length order after them.
     // They are not dropped: the substring scorer can still meet them inside a longer word ("auth" in
     // "authentication"), so they take any slot the known words leave.
-    const idf = (term: string): number => Math.log((rarity.documentCount + 1) / (rarity.documentFrequency(term) + 0.5))
     const byPosition = (left: TermRank, right: TermRank): number => left.firstTextIndex - right.firstTextIndex
     const byLength = (left: TermRank, right: TermRank): number =>
       left.textCount - right.textCount || right.length - left.length || left.firstSequence - right.firstSequence
     const known = pool.filter((entry) => rarity.documentFrequency(entry.term) > 0)
-      .sort((left, right) => byPosition(left, right) || idf(right.term) - idf(left.term) || byLength(left, right))
+      .sort((left, right) => byPosition(left, right) || rarity.documentFrequency(left.term) - rarity.documentFrequency(right.term) || byLength(left, right))
     const unknown = pool.filter((entry) => rarity.documentFrequency(entry.term) === 0)
       .sort((left, right) => byPosition(left, right) || byLength(left, right))
     return [...known, ...unknown]
