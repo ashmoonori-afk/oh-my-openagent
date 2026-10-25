@@ -13,7 +13,7 @@
 // it only drains the pending file delivery wrote. Every step stays fail-open: an unreadable memory
 // repo or a corrupt corpus drops the collection and logs, and the turn proceeds untouched.
 
-import type { OmoMemoryRecall, OmoMemorySettings } from "@oh-my-opencode/omo-config-core"
+import { OMO_MEMORY_RECALL_CROSSLINGUAL_CONSENT, type OmoMemoryRecall, type OmoMemorySettings } from "@oh-my-opencode/omo-config-core"
 import {
   GitMemoryRepo,
   PendingNudges,
@@ -38,6 +38,7 @@ import { loadRecallStoreRuntime } from "./recall-store-runtime-loader"
 import { withProjectDocuments } from "./project-memory-nudge"
 import { createProjectSourceMentions } from "./project-recall-mentions"
 import { projectDocumentsOf, selectWithProjectSeats, type ProjectRecallCorpus } from "./project-recall-seats"
+import type { CrosslingualProbeVerdict } from "./recall-crosslingual"
 import { loadCrosslingualRuntime, type CrosslingualRuntime } from "./recall-crosslingual-loader"
 import { createRecallDrain, type PendingNudgesPort } from "./recall-drain"
 import { createTranscriptMentionIndex } from "./recall-transcript-mentions"
@@ -150,6 +151,7 @@ export function createMemoryRecallWiring(options: MemoryRecallWiringOptions): Me
   const projectSourceMentions = options.projectSource === undefined ? undefined : createProjectSourceMentions(options.projectSource)
   const createRepo = options.createRepo ?? defaultCreateRepo
   const crosslingualWarned = new Set<string>()
+  const crosslingualProbes = new Map<string, Promise<CrosslingualProbeVerdict>>()
   const crosslingualRuntime = options.crosslingualRuntime ?? loadCrosslingualRuntime
 
   async function crosslingualReranker(settings: ResolvedMemoryRecallSettings["crosslingual"], sessionId: string) {
@@ -159,7 +161,9 @@ export function createMemoryRecallWiring(options: MemoryRecallWiringOptions): Me
         settings,
         env: options.env,
         lexical: CROSSLINGUAL_LEXICAL,
+        consentStatement: OMO_MEMORY_RECALL_CROSSLINGUAL_CONSENT,
         warned: crosslingualWarned,
+        probes: crosslingualProbes,
         ...(options.crosslingualFetch === undefined ? {} : { fetch: options.crosslingualFetch }),
         ...(options.logger === undefined ? {} : { logger: options.logger }),
       })

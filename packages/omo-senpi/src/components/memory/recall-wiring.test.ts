@@ -5,6 +5,8 @@ import {
   RecallLedger,
 } from "@oh-my-opencode/memory-core"
 
+import { OMO_MEMORY_RECALL_CROSSLINGUAL_CONSENT, type OmoMemoryRecallCrosslingual } from "@oh-my-opencode/omo-config-core"
+
 import { MemoryFakeExtensionAPI, memorySettings } from "./memory.test-support"
 import { MEMORY_NOTICE_CUSTOM_TYPE } from "./prompt"
 import { RECALL_CUSTOM_TYPE, createMemoryRecallWiring, resolveAgentRecallSettings } from "./recall-wiring"
@@ -110,7 +112,7 @@ describe("resolveAgentRecallSettings", () => {
       max_concurrent_wakes: 2,
       tool_budget: 4,
       query_expansion: false,
-      crosslingual: { enabled: true, api_key_env: "OPENGATEWAY_API_KEY", judge_model: "sionic-ai/jev-omni", translate_model: "openai/gpt-6-luna", view_languages: ["en", "ko"], timeout_ms: 30000 },
+      crosslingual: { enabled: true, view_languages: ["en", "ko"], timeout_ms: 30000 },
     })
     expect(other).toEqual({
       enabled: true,
@@ -121,7 +123,7 @@ describe("resolveAgentRecallSettings", () => {
       max_concurrent_wakes: 2,
       tool_budget: 8,
       query_expansion: false,
-      crosslingual: { enabled: false, api_key_env: "OPENGATEWAY_API_KEY", judge_model: "sionic-ai/jev-omni", translate_model: "openai/gpt-6-luna", view_languages: ["en", "ko"], timeout_ms: 30000 },
+      crosslingual: { enabled: false, view_languages: ["en", "ko"], timeout_ms: 30000 },
     })
   })
 })
@@ -487,14 +489,26 @@ describe("createMemoryRecallWiring collectCandidates", () => {
 })
 
 describe("createMemoryRecallWiring crosslingual rerank", () => {
-  const crosslingual = { enabled: true, api_key_env: "TEST_GATEWAY_KEY", judge_model: "sionic-ai/jev-omni", translate_model: "openai/gpt-6-luna", view_languages: ["en"], timeout_ms: 30000 }
+  const crosslingual: OmoMemoryRecallCrosslingual = {
+    enabled: true,
+    base_url: "https://gateway.test/v1",
+    api_key_env: "TEST_GATEWAY_KEY",
+    judge_model: "test/judge",
+    translate_model: "test/translate",
+    view_languages: ["en"],
+    timeout_ms: 30000,
+    consent: OMO_MEMORY_RECALL_CROSSLINGUAL_CONSENT,
+  }
   const drainsNote = { relativePath: DRAINS_PATH, content: `---\ndescription: ${DRAINS_DESCRIPTION}\n---\n${DRAINS_BODY}` }
 
-  function gateway(strength: Record<string, number>, status = 200) {
+  function gateway(strength: Record<string, number>, status = 200, judge: "decision" | "chat" = "decision") {
     const calls: { url: string; init: RequestInit }[] = []
     const fetch = async (url: string, init: RequestInit): Promise<Response> => {
       calls.push({ url, init })
       if (status !== 200) return new Response(JSON.stringify({ error: { message: "fixture" } }), { status })
+      if (judge === "chat" && url.endsWith("/decisions")) {
+        return new Response(JSON.stringify({ model: "test/judge", choices: [{ message: { role: "assistant", content: "c0 is more relevant" } }] }))
+      }
       if (url.endsWith("/chat/completions")) return new Response(JSON.stringify({ choices: [{ message: { content: "rollout drains" } }] }))
       const packet = JSON.parse(String(init.body)) as { model: string; state: { cards: Record<string, { identity: string }> }; questions: Record<string, unknown> }
       const keys = Object.keys(packet.questions)
@@ -522,9 +536,52 @@ describe("createMemoryRecallWiring crosslingual rerank", () => {
     // then
     expect(lexical?.candidates[0]?.path).toBe(ROLLOUTS_PATH)
     expect(collected?.candidates[0]?.path).toBe(DRAINS_PATH)
-    expect(calls[0]?.url.endsWith("/chat/completions")).toBe(true)
+    expect(calls[0]?.url).toBe("https://gateway.test/v1/decisions")
+    expect(String(calls[0]?.init.body)).not.toContain(KUBERNETES_PROMPT)
+    expect(calls[1]?.url).toBe("https://gateway.test/v1/chat/completions")
     expect(calls.every((call) => call.init.redirect === "error")).toBe(true)
     expect(calls.every((call) => (call.init.headers as Record<string, string>).authorization === "Bearer secret")).toBe(true)
+  }, 30_000)
+
+  const unconsentedCases: { readonly case: string; readonly settings: OmoMemoryRecallCrosslingual; readonly warned: (details: unknown) => boolean }[] = [
+    {
+      case: "consent is absent",
+      settings: { enabled: true, base_url: "https://gateway.test/v1", api_key_env: "TEST_GATEWAY_KEY", judge_model: "test/judge", translate_model: "test/translate", view_languages: ["en"], timeout_ms: 30000 },
+      warned: (details: unknown) => (details as { statement?: unknown }).statement === OMO_MEMORY_RECALL_CROSSLINGUAL_CONSENT,
+    },
+    {
+      case: "consent does not match the statement",
+      settings: { ...crosslingual, consent: "yes" },
+      warned: (details: unknown) => (details as { statement?: unknown }).statement === OMO_MEMORY_RECALL_CROSSLINGUAL_CONSENT,
+    },
+    {
+      case: "no models are configured",
+      settings: { enabled: true, view_languages: ["en"], timeout_ms: 30000, api_key_env: "TEST_GATEWAY_KEY", consent: OMO_MEMORY_RECALL_CROSSLINGUAL_CONSENT },
+      warned: (details: unknown) => JSON.stringify((details as { missing?: unknown }).missing) === JSON.stringify([
+        "memory.recall.crosslingual.base_url",
+        "memory.recall.crosslingual.judge_model",
+        "memory.recall.crosslingual.translate_model",
+      ]),
+    },
+  ]
+  test.each(unconsentedCases)("#given the rerank enabled with a key but $case #when candidates are collected #then nothing is sent and the lexical candidates stand", async ({ settings, warned }) => {
+    // given
+    const { repo, context } = await fixture(tempDirs)
+    const { fetch, calls } = gateway({})
+    const logs: Array<{ message: string; details?: unknown }> = []
+    const wiring = wiringFor({ repo, identity: context, recall: { crosslingual: settings }, env: { TEST_GATEWAY_KEY: "secret" }, crosslingualFetch: fetch, logs })
+
+    // when
+    const first = await wiring.collectCandidates(eventContext([userEntry("m1", KUBERNETES_PROMPT)]))
+    const second = await wiring.collectCandidates(eventContext([userEntry("m2", KUBERNETES_PROMPT)]))
+
+    // then
+    expect(calls).toHaveLength(0)
+    expect(first?.candidates.map((candidate) => candidate.path)).toEqual([ROLLOUTS_PATH])
+    expect(second?.candidates.map((candidate) => candidate.path)).toEqual([ROLLOUTS_PATH])
+    const crosslingualLogs = logs.filter((log) => log.message.includes("crosslingual"))
+    expect(crosslingualLogs).toHaveLength(1)
+    expect(warned(crosslingualLogs[0]?.details)).toBe(true)
   }, 30_000)
 
   test("#given the rerank enabled without a key #when candidates are collected #then nothing is sent and the lexical candidates stand", async () => {
@@ -541,6 +598,27 @@ describe("createMemoryRecallWiring crosslingual rerank", () => {
     expect(calls).toHaveLength(0)
     expect(collected?.candidates.map((candidate) => candidate.path)).toEqual([ROLLOUTS_PATH])
     expect(logs.filter((log) => log.message.includes("crosslingual"))).toHaveLength(1)
+  }, 30_000)
+
+  test("#given a judge that answers like a chat model #when candidates are collected twice #then only the synthetic probe is sent and the rerank stays disabled", async () => {
+    // given
+    const { repo, context } = await fixture(tempDirs)
+    const { fetch, calls } = gateway({}, 200, "chat")
+    const logs: Array<{ message: string; details?: unknown }> = []
+    const wiring = wiringFor({ repo, identity: context, recall: { crosslingual }, env: { TEST_GATEWAY_KEY: "secret" }, crosslingualFetch: fetch, logs })
+
+    // when
+    const first = await wiring.collectCandidates(eventContext([userEntry("m1", KUBERNETES_PROMPT)]))
+    const second = await wiring.collectCandidates(eventContext([userEntry("m2", KUBERNETES_PROMPT)]))
+
+    // then
+    expect(calls.map((call) => call.url)).toEqual(["https://gateway.test/v1/decisions"])
+    expect(String(calls[0]?.init.body)).not.toContain(KUBERNETES_PROMPT)
+    expect(first?.candidates.map((candidate) => candidate.path)).toEqual([ROLLOUTS_PATH])
+    expect(second?.candidates.map((candidate) => candidate.path)).toEqual([ROLLOUTS_PATH])
+    const crosslingualLogs = logs.filter((log) => log.message.includes("crosslingual"))
+    expect(crosslingualLogs).toHaveLength(1)
+    expect(crosslingualLogs[0]?.message).toContain("not a decision model")
   }, 30_000)
 
   test("#given a failing gateway #when candidates are collected twice #then the lexical candidates stand and one warning is logged", async () => {

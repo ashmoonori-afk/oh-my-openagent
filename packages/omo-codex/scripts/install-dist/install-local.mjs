@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// omo-codex-install:721fe0b75ce6b2b07e3841c3c4b6d76c49d899f04ddd5db4375ce431750e76ba:b2e590afaae2d2cb2a919d72499f4713c10e74a3a4725d3c0c0d5bc089129769
+// omo-codex-install:c24b854cb3c234e22516662d58d4e181527da6125a7292e25caad2e175f40f3c:508bd1af19ea68ebb569a3a4bc08e00b4128ff1b201075eba5364f68c14855d3
 var __esm = (fn, res, err) => () => {
   if (fn)
     try {
@@ -19632,29 +19632,31 @@ var OmoMemoryRecallEventCapsSchema = object({
   assistant: number2().int().nonnegative().default(1500),
   prompt: number2().int().nonnegative().default(4000)
 }).strict();
+var OMO_MEMORY_RECALL_CROSSLINGUAL_CONSENT = "I agree that omo sends my latest message and excerpts of matching memory notes to the translation and judge models I configured.";
 var OMO_MEMORY_RECALL_CROSSLINGUAL_DEFAULTS = {
   enabled: false,
-  api_key_env: "OPENGATEWAY_API_KEY",
-  judge_model: "sionic-ai/jev-omni",
-  translate_model: "openai/gpt-6-luna",
   view_languages: ["en", "ko"],
   timeout_ms: 30000
 };
 var OmoMemoryRecallCrosslingualSchema = object({
   enabled: boolean2().default(false),
-  api_key_env: string2().min(1).default("OPENGATEWAY_API_KEY"),
-  judge_model: string2().min(1).default("sionic-ai/jev-omni"),
-  translate_model: string2().min(1).default("openai/gpt-6-luna"),
+  base_url: string2().url().optional(),
+  api_key_env: string2().min(1).optional(),
+  judge_model: string2().min(1).optional().describe("A decision model (Jev-class, e.g. sionic-ai/jev-omni) served at <base_url>/decisions that returns answers.cN.noul per card. Chat models are refused by a synthetic probe before any user text is sent."),
+  translate_model: string2().min(1).optional(),
   view_languages: array(string2().min(2).max(8)).max(4).default(["en", "ko"]),
-  timeout_ms: number2().int().min(1000).max(120000).default(30000)
+  timeout_ms: number2().int().min(1000).max(120000).default(30000),
+  consent: string2().optional().describe(`Set to exactly: ${OMO_MEMORY_RECALL_CROSSLINGUAL_CONSENT}`)
 }).strict();
 var OmoMemoryRecallCrosslingualLayerSchema = object({
   enabled: boolean2().optional(),
+  base_url: string2().url().optional(),
   api_key_env: string2().min(1).optional(),
   judge_model: string2().min(1).optional(),
   translate_model: string2().min(1).optional(),
   view_languages: array(string2().min(2).max(8)).max(4).optional(),
-  timeout_ms: number2().int().min(1000).max(120000).optional()
+  timeout_ms: number2().int().min(1000).max(120000).optional(),
+  consent: string2().optional()
 }).strict();
 var OmoMemoryRecallSchema = object({
   enabled: boolean2().default(true),

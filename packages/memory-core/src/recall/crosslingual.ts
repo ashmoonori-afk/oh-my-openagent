@@ -18,7 +18,6 @@
 import type { RecallDocument } from "./provider"
 import type { RecallCandidate } from "./select"
 
-export const CROSSLINGUAL_MODEL = "sionic-ai/jev-omni"
 /** Notes per view and retriever entering the union. */
 export const CROSSLINGUAL_WIDTH = 32
 /** Cards per pointwise decision request. */
@@ -83,7 +82,8 @@ export interface CrosslingualRerankOptions {
   readonly maxItems: number
   readonly surfaced: ReadonlySet<string>
   readonly excludePaths?: ReadonlySet<string>
-  readonly model?: string
+  /** The decision model id the user configured; there is no default. */
+  readonly model: string
 }
 
 function windowTerms(text: string): string[] {
@@ -227,7 +227,7 @@ function cardJson(card: CrosslingualCard): { identity: string; description: stri
 }
 
 /** One decision request scoring 1..CROSSLINGUAL_MAX_CARDS distinct cards independently. */
-export function pointwisePacket(query: string, cards: readonly CrosslingualCard[], model = CROSSLINGUAL_MODEL): DecisionPacket {
+export function pointwisePacket(query: string, cards: readonly CrosslingualCard[], model: string): DecisionPacket {
   if (query.trim() === "") throw new CrosslingualRerankError("query is required")
   if (cards.length < 1 || cards.length > CROSSLINGUAL_MAX_CARDS || new Set(cards.map((card) => card.path)).size !== cards.length) {
     throw new CrosslingualRerankError(`a pointwise packet needs 1..${CROSSLINGUAL_MAX_CARDS} distinct cards`)
@@ -243,7 +243,7 @@ export function pointwisePacket(query: string, cards: readonly CrosslingualCard[
 }
 
 /** Two state cards and one scalar question: is `first` (c0) more useful than c1? */
-export function pairPacket(query: string, first: CrosslingualCard, second: CrosslingualCard, model = CROSSLINGUAL_MODEL): DecisionPacket {
+export function pairPacket(query: string, first: CrosslingualCard, second: CrosslingualCard, model: string): DecisionPacket {
   if (query.trim() === "") throw new CrosslingualRerankError("query is required")
   if (first.path === second.path) throw new CrosslingualRerankError("a pair needs two distinct cards")
   return {
@@ -258,7 +258,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /** The `count` scores of a decision response, or a thrown CrosslingualRerankError. */
-export function decisionScores(response: unknown, count: number, model = CROSSLINGUAL_MODEL): number[] {
+export function decisionScores(response: unknown, count: number, model: string): number[] {
   if (!isRecord(response) || response.model !== model) throw new CrosslingualRerankError("judge response is missing or names another model")
   const answers = response.answers
   const expected = Array.from({ length: count }, (_, index) => `c${index}`)
@@ -273,6 +273,29 @@ export function decisionScores(response: unknown, count: number, model = CROSSLI
     }
     return value
   })
+}
+
+/**
+ * A fixed decision request holding no user or note text. The rerank's correctness rests on a constrained per-card
+ * verdict (`answers.cN.noul` in [0, 1]) from a decision model such as sionic-ai/jev-omni, which is what the measured
+ * study used; a generic chat model does not answer this shape. Callers send this probe first and stop unless
+ * isDecisionResponse accepts the reply, so no user text reaches a model that cannot give that verdict.
+ */
+export function decisionProbePacket(model: string): DecisionPacket {
+  return pointwisePacket("Which card describes a domestic cat?", [
+    { path: "probe/cat", title: "Cat", snippet: "The domestic cat is a small carnivorous mammal kept as a pet." },
+    { path: "probe/basalt", title: "Basalt", snippet: "Basalt is a fine-grained volcanic rock." },
+  ], model)
+}
+
+/** Whether `response` is a structured decision for decisionProbePacket(model). */
+export function isDecisionResponse(response: unknown, model: string): boolean {
+  try {
+    decisionScores(response, 2, model)
+    return true
+  } catch {
+    return false
+  }
 }
 
 /** Runs `tasks` with at most CONCURRENCY in flight; the first rejection rejects the whole run. */
@@ -359,7 +382,7 @@ export async function pairwiseOrder(
   decide: DecideFn,
   query: string,
   cards: readonly CrosslingualCard[],
-  model = CROSSLINGUAL_MODEL,
+  model: string,
 ): Promise<{ readonly card: CrosslingualCard; readonly total: number }[]> {
   const pairs: [number, number][] = []
   for (let left = 0; left < cards.length; left += 1) for (let right = left + 1; right < cards.length; right += 1) pairs.push([left, right])
@@ -397,7 +420,8 @@ export async function rerankRecallCandidatesCrosslingual(
   if (query === "") throw new CrosslingualRerankError("query is required")
   const maxItems = Math.min(CROSSLINGUAL_FINAL, Math.max(0, options.maxItems))
   if (maxItems === 0 || documents.length === 0) return []
-  const model = options.model ?? CROSSLINGUAL_MODEL
+  const model = options.model
+  if (model.trim() === "") throw new CrosslingualRerankError("a decision model is required")
   const texts = [query]
   for (const view of options.views ?? []) {
     const text = view.trim()

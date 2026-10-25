@@ -49,32 +49,40 @@ export const OmoMemoryRecallEventCapsSchema = z.object({
   prompt: z.number().int().nonnegative().default(4000),
 }).strict()
 
+// The exact statement a user puts in memory.recall.crosslingual.consent to allow the opt-in cross-language rerank
+// to send text off the machine. Changing this wording invalidates every earlier consent.
+export const OMO_MEMORY_RECALL_CROSSLINGUAL_CONSENT =
+  "I agree that omo sends my latest message and excerpts of matching memory notes to the translation and judge models I configured."
+
 export const OMO_MEMORY_RECALL_CROSSLINGUAL_DEFAULTS = {
   enabled: false,
-  api_key_env: "OPENGATEWAY_API_KEY",
-  judge_model: "sionic-ai/jev-omni",
-  translate_model: "openai/gpt-6-luna",
   view_languages: ["en", "ko"],
   timeout_ms: 30000,
 } as const
 
-// Opt-in cross-language rerank of the Kibitzer candidates (paid hosted calls; off by default).
+// Opt-in cross-language rerank of the Kibitzer candidates. Off by default and inert until the user configures every
+// endpoint/model field (there are no built-in external defaults) and sets `consent` to the exact consent statement.
+// judge_model must be a decision model: the rerank depends on a constrained per-card verdict, not free-form chat.
 export const OmoMemoryRecallCrosslingualSchema = z.object({
   enabled: z.boolean().default(false),
-  api_key_env: z.string().min(1).default("OPENGATEWAY_API_KEY"),
-  judge_model: z.string().min(1).default("sionic-ai/jev-omni"),
-  translate_model: z.string().min(1).default("openai/gpt-6-luna"),
+  base_url: z.string().url().optional(),
+  api_key_env: z.string().min(1).optional(),
+  judge_model: z.string().min(1).optional().describe("A decision model (Jev-class, e.g. sionic-ai/jev-omni) served at <base_url>/decisions that returns answers.cN.noul per card. Chat models are refused by a synthetic probe before any user text is sent."),
+  translate_model: z.string().min(1).optional(),
   view_languages: z.array(z.string().min(2).max(8)).max(4).default(["en", "ko"]),
   timeout_ms: z.number().int().min(1000).max(120000).default(30000),
+  consent: z.string().optional().describe(`Set to exactly: ${OMO_MEMORY_RECALL_CROSSLINGUAL_CONSENT}`),
 }).strict()
 
 export const OmoMemoryRecallCrosslingualLayerSchema = z.object({
   enabled: z.boolean().optional(),
+  base_url: z.string().url().optional(),
   api_key_env: z.string().min(1).optional(),
   judge_model: z.string().min(1).optional(),
   translate_model: z.string().min(1).optional(),
   view_languages: z.array(z.string().min(2).max(8)).max(4).optional(),
   timeout_ms: z.number().int().min(1000).max(120000).optional(),
+  consent: z.string().optional(),
 }).strict()
 
 export const OmoMemoryRecallSchema = z.object({

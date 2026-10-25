@@ -1934,9 +1934,6 @@
             "query_expansion": false,
             "crosslingual": {
               "enabled": false,
-              "api_key_env": "OPENGATEWAY_API_KEY",
-              "judge_model": "sionic-ai/jev-omni",
-              "translate_model": "openai/gpt-6-luna",
               "view_languages": [
                 "en",
                 "ko"
@@ -2022,9 +2019,6 @@
             "crosslingual": {
               "default": {
                 "enabled": false,
-                "api_key_env": "OPENGATEWAY_API_KEY",
-                "judge_model": "sionic-ai/jev-omni",
-                "translate_model": "openai/gpt-6-luna",
                 "view_languages": [
                   "en",
                   "ko"
@@ -2037,18 +2031,20 @@
                   "default": false,
                   "type": "boolean"
                 },
+                "base_url": {
+                  "type": "string",
+                  "format": "uri"
+                },
                 "api_key_env": {
-                  "default": "OPENGATEWAY_API_KEY",
                   "type": "string",
                   "minLength": 1
                 },
                 "judge_model": {
-                  "default": "sionic-ai/jev-omni",
+                  "description": "A decision model (Jev-class, e.g. sionic-ai/jev-omni) served at <base_url>/decisions that returns answers.cN.noul per card. Chat models are refused by a synthetic probe before any user text is sent.",
                   "type": "string",
                   "minLength": 1
                 },
                 "translate_model": {
-                  "default": "openai/gpt-6-luna",
                   "type": "string",
                   "minLength": 1
                 },
@@ -2070,6 +2066,10 @@
                   "type": "integer",
                   "minimum": 1000,
                   "maximum": 120000
+                },
+                "consent": {
+                  "description": "Set to exactly: I agree that omo sends my latest message and excerpts of matching memory notes to the translation and judge models I configured.",
+                  "type": "string"
                 }
               },
               "additionalProperties": false
@@ -2393,6 +2393,10 @@
                       "enabled": {
                         "type": "boolean"
                       },
+                      "base_url": {
+                        "type": "string",
+                        "format": "uri"
+                      },
                       "api_key_env": {
                         "type": "string",
                         "minLength": 1
@@ -2418,6 +2422,9 @@
                         "type": "integer",
                         "minimum": 1000,
                         "maximum": 120000
+                      },
+                      "consent": {
+                        "type": "string"
                       }
                     },
                     "additionalProperties": false
@@ -4483,6 +4490,10 @@
                     "enabled": {
                       "type": "boolean"
                     },
+                    "base_url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
                     "api_key_env": {
                       "type": "string",
                       "minLength": 1
@@ -4508,6 +4519,9 @@
                       "type": "integer",
                       "minimum": 1000,
                       "maximum": 120000
+                    },
+                    "consent": {
+                      "type": "string"
                     }
                   },
                   "additionalProperties": false
@@ -4817,6 +4831,10 @@
                           "enabled": {
                             "type": "boolean"
                           },
+                          "base_url": {
+                            "type": "string",
+                            "format": "uri"
+                          },
                           "api_key_env": {
                             "type": "string",
                             "minLength": 1
@@ -4842,6 +4860,9 @@
                             "type": "integer",
                             "minimum": 1000,
                             "maximum": 120000
+                          },
+                          "consent": {
+                            "type": "string"
                           }
                         },
                         "additionalProperties": false
@@ -6883,6 +6904,10 @@
                     "enabled": {
                       "type": "boolean"
                     },
+                    "base_url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
                     "api_key_env": {
                       "type": "string",
                       "minLength": 1
@@ -6908,6 +6933,9 @@
                       "type": "integer",
                       "minimum": 1000,
                       "maximum": 120000
+                    },
+                    "consent": {
+                      "type": "string"
                     }
                   },
                   "additionalProperties": false
@@ -7217,6 +7245,10 @@
                           "enabled": {
                             "type": "boolean"
                           },
+                          "base_url": {
+                            "type": "string",
+                            "format": "uri"
+                          },
                           "api_key_env": {
                             "type": "string",
                             "minLength": 1
@@ -7242,6 +7274,9 @@
                             "type": "integer",
                             "minimum": 1000,
                             "maximum": 120000
+                          },
+                          "consent": {
+                            "type": "string"
                           }
                         },
                         "additionalProperties": false
@@ -9283,6 +9318,10 @@
                     "enabled": {
                       "type": "boolean"
                     },
+                    "base_url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
                     "api_key_env": {
                       "type": "string",
                       "minLength": 1
@@ -9308,6 +9347,9 @@
                       "type": "integer",
                       "minimum": 1000,
                       "maximum": 120000
+                    },
+                    "consent": {
+                      "type": "string"
                     }
                   },
                   "additionalProperties": false
@@ -9617,6 +9659,10 @@
                           "enabled": {
                             "type": "boolean"
                           },
+                          "base_url": {
+                            "type": "string",
+                            "format": "uri"
+                          },
                           "api_key_env": {
                             "type": "string",
                             "minLength": 1
@@ -9642,6 +9688,9 @@
                             "type": "integer",
                             "minimum": 1000,
                             "maximum": 120000
+                          },
+                          "consent": {
+                            "type": "string"
                           }
                         },
                         "additionalProperties": false
@@ -11689,6 +11738,10 @@
                       "enabled": {
                         "type": "boolean"
                       },
+                      "base_url": {
+                        "type": "string",
+                        "format": "uri"
+                      },
                       "api_key_env": {
                         "type": "string",
                         "minLength": 1
@@ -11714,6 +11767,9 @@
                         "type": "integer",
                         "minimum": 1000,
                         "maximum": 120000
+                      },
+                      "consent": {
+                        "type": "string"
                       }
                     },
                     "additionalProperties": false
@@ -12023,6 +12079,10 @@
                             "enabled": {
                               "type": "boolean"
                             },
+                            "base_url": {
+                              "type": "string",
+                              "format": "uri"
+                            },
                             "api_key_env": {
                               "type": "string",
                               "minLength": 1
@@ -12048,6 +12108,9 @@
                               "type": "integer",
                               "minimum": 1000,
                               "maximum": 120000
+                            },
+                            "consent": {
+                              "type": "string"
                             }
                           },
                           "additionalProperties": false
@@ -14089,6 +14152,10 @@
                           "enabled": {
                             "type": "boolean"
                           },
+                          "base_url": {
+                            "type": "string",
+                            "format": "uri"
+                          },
                           "api_key_env": {
                             "type": "string",
                             "minLength": 1
@@ -14114,6 +14181,9 @@
                             "type": "integer",
                             "minimum": 1000,
                             "maximum": 120000
+                          },
+                          "consent": {
+                            "type": "string"
                           }
                         },
                         "additionalProperties": false
@@ -14423,6 +14493,10 @@
                                 "enabled": {
                                   "type": "boolean"
                                 },
+                                "base_url": {
+                                  "type": "string",
+                                  "format": "uri"
+                                },
                                 "api_key_env": {
                                   "type": "string",
                                   "minLength": 1
@@ -14448,6 +14522,9 @@
                                   "type": "integer",
                                   "minimum": 1000,
                                   "maximum": 120000
+                                },
+                                "consent": {
+                                  "type": "string"
                                 }
                               },
                               "additionalProperties": false
@@ -16489,6 +16566,10 @@
                           "enabled": {
                             "type": "boolean"
                           },
+                          "base_url": {
+                            "type": "string",
+                            "format": "uri"
+                          },
                           "api_key_env": {
                             "type": "string",
                             "minLength": 1
@@ -16514,6 +16595,9 @@
                             "type": "integer",
                             "minimum": 1000,
                             "maximum": 120000
+                          },
+                          "consent": {
+                            "type": "string"
                           }
                         },
                         "additionalProperties": false
@@ -16823,6 +16907,10 @@
                                 "enabled": {
                                   "type": "boolean"
                                 },
+                                "base_url": {
+                                  "type": "string",
+                                  "format": "uri"
+                                },
                                 "api_key_env": {
                                   "type": "string",
                                   "minLength": 1
@@ -16848,6 +16936,9 @@
                                   "type": "integer",
                                   "minimum": 1000,
                                   "maximum": 120000
+                                },
+                                "consent": {
+                                  "type": "string"
                                 }
                               },
                               "additionalProperties": false
@@ -18889,6 +18980,10 @@
                           "enabled": {
                             "type": "boolean"
                           },
+                          "base_url": {
+                            "type": "string",
+                            "format": "uri"
+                          },
                           "api_key_env": {
                             "type": "string",
                             "minLength": 1
@@ -18914,6 +19009,9 @@
                             "type": "integer",
                             "minimum": 1000,
                             "maximum": 120000
+                          },
+                          "consent": {
+                            "type": "string"
                           }
                         },
                         "additionalProperties": false
@@ -19223,6 +19321,10 @@
                                 "enabled": {
                                   "type": "boolean"
                                 },
+                                "base_url": {
+                                  "type": "string",
+                                  "format": "uri"
+                                },
                                 "api_key_env": {
                                   "type": "string",
                                   "minLength": 1
@@ -19248,6 +19350,9 @@
                                   "type": "integer",
                                   "minimum": 1000,
                                   "maximum": 120000
+                                },
+                                "consent": {
+                                  "type": "string"
                                 }
                               },
                               "additionalProperties": false

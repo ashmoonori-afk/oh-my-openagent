@@ -408,6 +408,8 @@ describe("checkExtensionCurrent", () => {
       expect(mainInputs.some((input) => toPortableBuildPath(input).endsWith(suffix)), suffix).toBe(false)
       expect(recallStoreInputs.some((input) => toPortableBuildPath(input).endsWith(suffix)), suffix).toBe(true)
     }
+    // The consent statement is handed in, so the sidecar carries no config schema (and no zod).
+    expect(recallStoreInputs.some((input) => toPortableBuildPath(input).includes("packages/omo-config-core/src/"))).toBe(false)
     // The rerank ranks with the entry bundle's BM25 and tokenizer, handed in; a sidecar copy would be a second index.
     expect(recallStoreInputs.some((input) => toPortableBuildPath(input).endsWith("packages/memory-core/src/recall/bm25.ts"))).toBe(false)
   })

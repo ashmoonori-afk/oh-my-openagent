@@ -1,7 +1,11 @@
-// Opt-in cross-language rerank for Kibitzer candidates (memory.recall.crosslingual). With the switch
-// off, or with no key in the configured environment variable, nothing is sent anywhere and the lexical
-// candidates stand. With both, the newest user question is translated into the configured view
-// languages and the memory-core pipeline orders the notes with the hosted decision judge. Any failure
+// Opt-in cross-language rerank for Kibitzer candidates (memory.recall.crosslingual). Nothing is sent anywhere and the
+// lexical candidates stand unless the switch is on, the user configured base_url, api_key_env, judge_model and
+// translate_model (there are no built-in defaults), the key variable holds a key, and `consent` equals the exact
+// consent statement. Then the newest user question is translated into the configured view languages and the
+// memory-core pipeline orders the notes with the configured decision judge. The judge must be a decision model (a
+// Jev-class model such as sionic-ai/jev-omni on a /decisions endpoint) that returns a constrained per-card verdict; a
+// generic chat model is refused. Before any user text is sent, a fixed synthetic probe checks the reply shape once per
+// base_url and judge_model; a reply that is not a structured decision disables the rerank for that configuration. Any failure
 // or the deadline returns undefined, the caller keeps the lexical candidates, and one warning is logged
 // per session. It ships in the recall-store sidecar (./recall-store-runtime.ts), never in omo.js.
 
@@ -9,6 +13,8 @@ import type { OmoMemoryRecallCrosslingual } from "@oh-my-opencode/omo-config-cor
 import type { RecallCandidate, RecallDocument } from "@oh-my-opencode/memory-core"
 import {
   CrosslingualRerankError,
+  decisionProbePacket,
+  isDecisionResponse,
   rerankRecallCandidatesCrosslingual,
   type CrosslingualLexical,
   type DecisionPacket,
@@ -16,7 +22,6 @@ import {
 
 import type { ComponentLogger } from "../../extension/types"
 
-export const CROSSLINGUAL_GATEWAY = "https://apis.opengateway.ai/v1"
 const MAX_RESPONSE_BYTES = 2 * 1024 * 1024
 const MAX_QUERY_CHARS = 2000
 const LANGUAGE_NAMES: Readonly<Record<string, string>> = {
@@ -24,6 +29,8 @@ const LANGUAGE_NAMES: Readonly<Record<string, string>> = {
 }
 
 type FetchFn = (url: string, init: RequestInit) => Promise<Response>
+export type CrosslingualProbeVerdict = "decision" | "not-decision" | "unreachable"
+type ProbeVerdict = CrosslingualProbeVerdict
 
 export interface CrosslingualRerankInput {
   readonly sessionId: string
@@ -44,10 +51,13 @@ export interface CrosslingualRerankerOptions {
   /** The entry bundle's recall ranking and tokenizer, so the sidecar never builds a second BM25 index. */
   readonly lexical: CrosslingualLexical
   readonly fetch?: FetchFn
-  readonly baseUrl?: string
   readonly logger?: ComponentLogger
   /** Sessions already warned; shared across calls so a session logs one warning. */
   readonly warned?: Set<string>
+  /** The exact consent statement (OMO_MEMORY_RECALL_CROSSLINGUAL_CONSENT), passed in so the sidecar does not bundle the config schema. */
+  readonly consentStatement: string
+  /** Decision-model probe verdicts per base_url and judge_model, shared across calls. */
+  readonly probes?: Map<string, Promise<ProbeVerdict>>
 }
 
 async function postJson(fetchImpl: FetchFn, url: string, key: string, body: unknown, signal: AbortSignal): Promise<unknown> {
@@ -86,8 +96,8 @@ export function createCrosslingualReranker(options: CrosslingualRerankerOptions)
   const { settings } = options
   if (!settings.enabled) return undefined
   const fetchImpl = options.fetch ?? ((url, init) => fetch(url, init))
-  const baseUrl = options.baseUrl ?? CROSSLINGUAL_GATEWAY
   const warned = options.warned ?? new Set<string>()
+  const probes = options.probes ?? new Map<string, Promise<ProbeVerdict>>()
   const warnOnce = (sessionId: string, message: string, detail: Record<string, unknown>): void => {
     if (warned.has(sessionId)) return
     warned.add(sessionId)
@@ -95,20 +105,57 @@ export function createCrosslingualReranker(options: CrosslingualRerankerOptions)
   }
 
   return async (documents, input) => {
-    const key = options.env[settings.api_key_env]
-    if (key === undefined || key.trim() === "") {
-      warnOnce(input.sessionId, "omo-senpi memory recall crosslingual rerank skipped: no API key", { env: settings.api_key_env })
+    const { base_url: baseUrlSetting, api_key_env: keyEnv, judge_model: judgeModel, translate_model: translateModel } = settings
+    if (baseUrlSetting === undefined || keyEnv === undefined || judgeModel === undefined || translateModel === undefined) {
+      warnOnce(input.sessionId, "omo-senpi memory recall crosslingual rerank is enabled but not configured; nothing is sent", {
+        missing: [["base_url", baseUrlSetting], ["api_key_env", keyEnv], ["judge_model", judgeModel], ["translate_model", translateModel]]
+          .filter(([, value]) => value === undefined).map(([name]) => `memory.recall.crosslingual.${name}`),
+      })
       return undefined
     }
+    if (settings.consent !== options.consentStatement) {
+      warnOnce(input.sessionId, "omo-senpi memory recall crosslingual rerank needs consent; nothing is sent", {
+        setting: "memory.recall.crosslingual.consent",
+        statement: options.consentStatement,
+      })
+      return undefined
+    }
+    const key = options.env[keyEnv]
+    if (key === undefined || key.trim() === "") {
+      warnOnce(input.sessionId, "omo-senpi memory recall crosslingual rerank skipped: no API key", { env: keyEnv })
+      return undefined
+    }
+    const baseUrl = baseUrlSetting.replace(/\/+$/, "")
     const question = input.question.trim().slice(0, MAX_QUERY_CHARS)
     if (question === "") return undefined
     const signal = AbortSignal.timeout(settings.timeout_ms)
+    const probeKey = `${baseUrl}\u0000${judgeModel}`
+    let probe = probes.get(probeKey)
+    if (probe === undefined) {
+      probe = postJson(fetchImpl, `${baseUrl}/decisions`, key, decisionProbePacket(judgeModel), signal)
+        .then((response): ProbeVerdict => (isDecisionResponse(response, judgeModel) ? "decision" : "not-decision"),
+          (): ProbeVerdict => "unreachable")
+      probes.set(probeKey, probe)
+    }
+    const verdict = await probe
+    if (verdict === "unreachable") probes.delete(probeKey)
+    if (verdict === "not-decision") {
+      warnOnce(input.sessionId, "omo-senpi memory recall crosslingual rerank disabled: judge_model is not a decision model; nothing else is sent", {
+        judge_model: judgeModel,
+        requirement: "a Jev-class decision model (for example sionic-ai/jev-omni) on a /decisions endpoint that answers each card with answers.cN.noul in [0, 1]",
+      })
+      return undefined
+    }
+    if (verdict === "unreachable") {
+      warnOnce(input.sessionId, "omo-senpi memory recall crosslingual rerank skipped: the decision endpoint did not answer; lexical candidates kept", { base_url: baseUrl })
+      return undefined
+    }
     try {
       const views = await Promise.all(settings.view_languages.map(async (language) => completionText(await postJson(
         fetchImpl,
         `${baseUrl}/chat/completions`,
         key,
-        { model: settings.translate_model, stream: false, max_tokens: 512, messages: [{ role: "user", content: translationPrompt(question, language) }] },
+        { model: translateModel, stream: false, max_tokens: 512, messages: [{ role: "user", content: translationPrompt(question, language) }] },
         signal,
       ))))
       const decide = (packet: DecisionPacket): Promise<unknown> => postJson(fetchImpl, `${baseUrl}/decisions`, key, packet, signal)
@@ -120,7 +167,7 @@ export function createCrosslingualReranker(options: CrosslingualRerankerOptions)
         maxItems: input.maxItems,
         surfaced: input.surfaced,
         excludePaths: input.excludePaths,
-        model: settings.judge_model,
+        model: judgeModel,
       })
     } catch (error) {
       warnOnce(input.sessionId, "omo-senpi memory recall crosslingual rerank failed; lexical candidates kept", {
