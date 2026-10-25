@@ -2,9 +2,9 @@
 // lexical candidates stand unless the switch is on, the user configured base_url, api_key_env, judge_model and
 // translate_model (there are no built-in defaults), the key variable holds a key, and `consent` equals the exact
 // consent statement. Then the newest user question is translated into the configured view languages and the
-// memory-core pipeline orders the notes with the configured decision judge. The judge must be a decision model (a
-// Jev-class model such as sionic-ai/jev-omni on a /decisions endpoint) that returns a constrained per-card verdict; a
-// generic chat model is refused. Before any user text is sent, a fixed synthetic probe checks the reply shape once per
+// memory-core pipeline orders the notes with the configured decision judge. The judge must be a System 1 decision
+// model on a /decisions endpoint: an instant, constrained verdict for each supplied candidate; general chat and
+// reasoning models are refused. Before any user text is sent, a fixed synthetic probe checks the reply shape once per
 // base_url and judge_model; a reply that is not a structured decision disables the rerank for that configuration. Any failure
 // or the deadline returns undefined, the caller keeps the lexical candidates, and one warning is logged
 // per session. It ships in the recall-store sidecar (./recall-store-runtime.ts), never in omo.js.
@@ -140,9 +140,9 @@ export function createCrosslingualReranker(options: CrosslingualRerankerOptions)
     const verdict = await probe
     if (verdict === "unreachable") probes.delete(probeKey)
     if (verdict === "not-decision") {
-      warnOnce(input.sessionId, "omo-senpi memory recall crosslingual rerank disabled: judge_model is not a decision model; nothing else is sent", {
+      warnOnce(input.sessionId, "omo-senpi memory recall crosslingual rerank disabled: judge_model is not a System 1 decision model; nothing else is sent", {
         judge_model: judgeModel,
-        requirement: "a Jev-class decision model (for example sionic-ai/jev-omni) on a /decisions endpoint that answers each card with answers.cN.noul in [0, 1]",
+        requirement: "a System 1 decision model on <base_url>/decisions that returns a structured verdict over the supplied candidates (answers.cN.noul in [0, 1]); general chat and reasoning models are rejected",
       })
       return undefined
     }

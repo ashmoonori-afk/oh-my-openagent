@@ -618,7 +618,7 @@ describe("createMemoryRecallWiring crosslingual rerank", () => {
     expect(second?.candidates.map((candidate) => candidate.path)).toEqual([ROLLOUTS_PATH])
     const crosslingualLogs = logs.filter((log) => log.message.includes("crosslingual"))
     expect(crosslingualLogs).toHaveLength(1)
-    expect(crosslingualLogs[0]?.message).toContain("not a decision model")
+    expect(crosslingualLogs[0]?.message).toContain("not a System 1 decision model")
   }, 30_000)
 
   test("#given a failing gateway #when candidates are collected twice #then the lexical candidates stand and one warning is logged", async () => {

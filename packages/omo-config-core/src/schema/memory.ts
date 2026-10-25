@@ -62,12 +62,12 @@ export const OMO_MEMORY_RECALL_CROSSLINGUAL_DEFAULTS = {
 
 // Opt-in cross-language rerank of the Kibitzer candidates. Off by default and inert until the user configures every
 // endpoint/model field (there are no built-in external defaults) and sets `consent` to the exact consent statement.
-// judge_model must be a decision model: the rerank depends on a constrained per-card verdict, not free-form chat.
+// judge_model must be a System 1 decision model: the rerank depends on a constrained per-candidate verdict, not free-form chat or reasoning.
 export const OmoMemoryRecallCrosslingualSchema = z.object({
   enabled: z.boolean().default(false),
   base_url: z.string().url().optional(),
   api_key_env: z.string().min(1).optional(),
-  judge_model: z.string().min(1).optional().describe("A decision model (Jev-class, e.g. sionic-ai/jev-omni) served at <base_url>/decisions that returns answers.cN.noul per card. Chat models are refused by a synthetic probe before any user text is sent."),
+  judge_model: z.string().min(1).optional().describe("A System 1 decision model served at <base_url>/decisions: an instant, constrained verdict for each supplied candidate (answers.cN.noul in [0, 1]), no long reasoning. General chat and reasoning models are rejected by a synthetic probe before any user text is sent."),
   translate_model: z.string().min(1).optional(),
   view_languages: z.array(z.string().min(2).max(8)).max(4).default(["en", "ko"]),
   timeout_ms: z.number().int().min(1000).max(120000).default(30000),

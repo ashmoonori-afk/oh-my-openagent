@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// omo-codex-install:c24b854cb3c234e22516662d58d4e181527da6125a7292e25caad2e175f40f3c:508bd1af19ea68ebb569a3a4bc08e00b4128ff1b201075eba5364f68c14855d3
+// omo-codex-install:48d6cf81e345f5a7b08a436879e885351fc4486bd7810a46d07b49222277f6c7:e0cd82e62ae8569e7a4d559696e950bb55f84c730d4358bd1cf24759f62f7463
 var __esm = (fn, res, err) => () => {
   if (fn)
     try {
@@ -19642,7 +19642,7 @@ var OmoMemoryRecallCrosslingualSchema = object({
   enabled: boolean2().default(false),
   base_url: string2().url().optional(),
   api_key_env: string2().min(1).optional(),
-  judge_model: string2().min(1).optional().describe("A decision model (Jev-class, e.g. sionic-ai/jev-omni) served at <base_url>/decisions that returns answers.cN.noul per card. Chat models are refused by a synthetic probe before any user text is sent."),
+  judge_model: string2().min(1).optional().describe("A System 1 decision model served at <base_url>/decisions: an instant, constrained verdict for each supplied candidate (answers.cN.noul in [0, 1]), no long reasoning. General chat and reasoning models are rejected by a synthetic probe before any user text is sent."),
   translate_model: string2().min(1).optional(),
   view_languages: array(string2().min(2).max(8)).max(4).default(["en", "ko"]),
   timeout_ms: number2().int().min(1000).max(120000).default(30000),

@@ -2040,7 +2040,7 @@
                   "minLength": 1
                 },
                 "judge_model": {
-                  "description": "A decision model (Jev-class, e.g. sionic-ai/jev-omni) served at <base_url>/decisions that returns answers.cN.noul per card. Chat models are refused by a synthetic probe before any user text is sent.",
+                  "description": "A System 1 decision model served at <base_url>/decisions: an instant, constrained verdict for each supplied candidate (answers.cN.noul in [0, 1]), no long reasoning. General chat and reasoning models are rejected by a synthetic probe before any user text is sent.",
                   "type": "string",
                   "minLength": 1
                 },

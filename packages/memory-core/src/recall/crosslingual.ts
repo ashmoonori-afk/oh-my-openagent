@@ -277,8 +277,8 @@ export function decisionScores(response: unknown, count: number, model: string):
 
 /**
  * A fixed decision request holding no user or note text. The rerank's correctness rests on a constrained per-card
- * verdict (`answers.cN.noul` in [0, 1]) from a decision model such as sionic-ai/jev-omni, which is what the measured
- * study used; a generic chat model does not answer this shape. Callers send this probe first and stop unless
+ * verdict (`answers.cN.noul` in [0, 1]) from a System 1 decision model, which is what the measured
+ * study used; a general chat or reasoning model does not answer this shape. Callers send this probe first and stop unless
  * isDecisionResponse accepts the reply, so no user text reaches a model that cannot give that verdict.
  */
 export function decisionProbePacket(model: string): DecisionPacket {
