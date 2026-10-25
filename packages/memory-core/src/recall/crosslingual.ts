@@ -11,10 +11,10 @@
 //      added to the first and 1 - p to the second. Membership never changes, only order.
 //
 // Nothing here performs I/O: the caller passes `decide`, and an invalid answer throws
-// CrosslingualRerankError instead of returning a partial ranking. The caller decides the fallback.
+// CrosslingualRerankError instead of returning a partial ranking. The caller decides the fallback. The caller also
+// passes the recall ranking and tokenizer (`lexical`), so a lazily loaded copy of this module uses the host's one
+// BM25 index instead of building a second.
 
-import { recallTerms, rankRecallDocumentsBm25, tokenizeRecallText } from "./bm25"
-import { buildExcerpt } from "./excerpt"
 import type { RecallDocument } from "./provider"
 import type { RecallCandidate } from "./select"
 
@@ -62,6 +62,14 @@ export interface DecisionPacket {
   readonly questions: Record<string, { type: "noul"; instructions: string; criteria: { true: string; false: string } }>
 }
 
+/** The host's recall BM25 ranking, recall-term tokenizer and excerpt builder. */
+export interface CrosslingualLexical {
+  readonly rankBm25: (documents: readonly RecallDocument[], queries: readonly string[]) => readonly { readonly document: RecallDocument }[]
+  readonly terms: (text: string) => string[]
+  readonly tokens: (text: string) => string[]
+  readonly excerpt: (body: string, anchors: string[]) => string
+}
+
 /** One paid decision request; resolves to the parsed JSON response body. */
 export type DecideFn = (packet: DecisionPacket) => Promise<unknown>
 
@@ -71,6 +79,7 @@ export interface CrosslingualRerankOptions {
   /** Translated views of the question; empty, repeated or equal-to-query views are dropped. */
   readonly views?: readonly string[]
   readonly decide: DecideFn
+  readonly lexical: CrosslingualLexical
   readonly maxItems: number
   readonly surfaced: ReadonlySet<string>
   readonly excludePaths?: ReadonlySet<string>
@@ -149,17 +158,17 @@ interface CosineIndex {
 
 const COSINE_INDEXES = new WeakMap<readonly RecallDocument[], CosineIndex>()
 
-function termCounts(text: string): Map<string, number> {
+function termCounts(terms: (text: string) => string[], text: string): Map<string, number> {
   const counts = new Map<string, number>()
-  for (const term of recallTerms(text)) counts.set(term, (counts.get(term) ?? 0) + 1)
+  for (const term of terms(text)) counts.set(term, (counts.get(term) ?? 0) + 1)
   return counts
 }
 
 /** TF-IDF cosine index: weight (1 + ln tf) * (ln((1 + N) / (1 + df)) + 1), unit-normalized per note. */
-function cosineIndex(documents: readonly RecallDocument[]): CosineIndex {
+function cosineIndex(documents: readonly RecallDocument[], terms: (text: string) => string[]): CosineIndex {
   const cached = COSINE_INDEXES.get(documents)
   if (cached !== undefined) return cached
-  const counted = documents.map((document) => ({ path: document.path, counts: termCounts(`${document.description}\n${document.body}`) }))
+  const counted = documents.map((document) => ({ path: document.path, counts: termCounts(terms, `${document.description}\n${document.body}`) }))
   const df = new Map<string, number>()
   for (const { counts } of counted) for (const term of counts.keys()) df.set(term, (df.get(term) ?? 0) + 1)
   const idf = new Map([...df].map(([term, count]) => [term, Math.log((1 + documents.length) / (1 + count)) + 1] as const))
@@ -180,10 +189,10 @@ function cosineIndex(documents: readonly RecallDocument[]): CosineIndex {
   return index
 }
 
-function cosineRanking(documents: readonly RecallDocument[], query: string, eligible: (path: string) => boolean, depth: number): string[] {
-  const index = cosineIndex(documents)
+function cosineRanking(lexical: CrosslingualLexical, documents: readonly RecallDocument[], query: string, eligible: (path: string) => boolean, depth: number): string[] {
+  const index = cosineIndex(documents, lexical.terms)
   const weights = new Map<string, number>()
-  for (const [term, count] of termCounts(query)) {
+  for (const [term, count] of termCounts(lexical.terms, query)) {
     const idf = index.idf.get(term)
     if (idf !== undefined) weights.set(term, (1 + Math.log(count)) * idf)
   }
@@ -200,9 +209,9 @@ function cosineRanking(documents: readonly RecallDocument[], query: string, elig
   return scored.slice(0, depth).map((row) => row.path)
 }
 
-function bm25Ranking(documents: readonly RecallDocument[], query: string, eligible: (path: string) => boolean, depth: number): string[] {
+function bm25Ranking(lexical: CrosslingualLexical, documents: readonly RecallDocument[], query: string, eligible: (path: string) => boolean, depth: number): string[] {
   const paths: string[] = []
-  for (const { document } of rankRecallDocumentsBm25(documents, [query])) {
+  for (const { document } of lexical.rankBm25(documents, [query])) {
     if (!eligible(document.path)) continue
     paths.push(document.path)
     if (paths.length === depth) break
@@ -396,8 +405,8 @@ export async function rerankRecallCandidatesCrosslingual(
   }
   const eligible = (path: string): boolean => !options.surfaced.has(path) && options.excludePaths?.has(path) !== true
   const byPath = new Map(documents.map((document) => [document.path, document]))
-  const bm25Union = expandedUnion(texts.map((text) => bm25Ranking(documents, text, eligible, CROSSLINGUAL_WIDTH)))
-  const cosineUnion = expandedUnion(texts.map((text) => cosineRanking(documents, text, eligible, CROSSLINGUAL_WIDTH)))
+  const bm25Union = expandedUnion(texts.map((text) => bm25Ranking(options.lexical, documents, text, eligible, CROSSLINGUAL_WIDTH)))
+  const cosineUnion = expandedUnion(texts.map((text) => cosineRanking(options.lexical, documents, text, eligible, CROSSLINGUAL_WIDTH)))
   if (bm25Union.length === 0 && cosineUnion.length === 0) return []
   const { df, size } = windowFrequencies(documents)
   const cards = (paths: readonly string[]): CrosslingualCard[] => paths.flatMap((path) => {
@@ -411,11 +420,11 @@ export async function rerankRecallCandidatesCrosslingual(
     scoreCards(options.decide, query, cosineCards, model),
   ])
   const ordered = await pairwiseOrder(options.decide, query, mergeTop(bm25Cards, bm25Scores, cosineCards, cosineScores), model)
-  const anchors = [...new Set(tokenizeRecallText(query))].filter((token) => Array.from(token).length > 1)
+  const anchors = [...new Set(options.lexical.tokens(query))].filter((token) => Array.from(token).length > 1)
   return ordered.slice(0, maxItems).map(({ card, total }) => ({
     path: card.path,
     description: card.title,
-    excerpt: buildExcerpt((byPath.get(card.path)?.body ?? "").normalize("NFKC"), anchors),
+    excerpt: options.lexical.excerpt((byPath.get(card.path)?.body ?? "").normalize("NFKC"), anchors),
     score: 1 / (1 + total),
   }))
 }

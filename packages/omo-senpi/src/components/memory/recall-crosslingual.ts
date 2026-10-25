@@ -3,16 +3,16 @@
 // candidates stand. With both, the newest user question is translated into the configured view
 // languages and the memory-core pipeline orders the notes with the hosted decision judge. Any failure
 // or the deadline returns undefined, the caller keeps the lexical candidates, and one warning is logged
-// per session.
+// per session. It ships in the recall-store sidecar (./recall-store-runtime.ts), never in omo.js.
 
 import type { OmoMemoryRecallCrosslingual } from "@oh-my-opencode/omo-config-core"
+import type { RecallCandidate, RecallDocument } from "@oh-my-opencode/memory-core"
 import {
   CrosslingualRerankError,
   rerankRecallCandidatesCrosslingual,
+  type CrosslingualLexical,
   type DecisionPacket,
-  type RecallCandidate,
-  type RecallDocument,
-} from "@oh-my-opencode/memory-core"
+} from "@oh-my-opencode/memory-core/recall-crosslingual"
 
 import type { ComponentLogger } from "../../extension/types"
 
@@ -41,6 +41,8 @@ export type CrosslingualReranker = (
 export interface CrosslingualRerankerOptions {
   readonly settings: OmoMemoryRecallCrosslingual
   readonly env: Record<string, string | undefined>
+  /** The entry bundle's recall ranking and tokenizer, so the sidecar never builds a second BM25 index. */
+  readonly lexical: CrosslingualLexical
   readonly fetch?: FetchFn
   readonly baseUrl?: string
   readonly logger?: ComponentLogger
@@ -114,6 +116,7 @@ export function createCrosslingualReranker(options: CrosslingualRerankerOptions)
         query: question,
         views,
         decide,
+        lexical: options.lexical,
         maxItems: input.maxItems,
         surfaced: input.surfaced,
         excludePaths: input.excludePaths,

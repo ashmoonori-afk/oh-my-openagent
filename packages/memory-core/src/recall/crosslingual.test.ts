@@ -16,7 +16,11 @@ import {
   type CrosslingualCard,
   type DecisionPacket,
 } from "./crosslingual"
+import { rankRecallDocumentsBm25, recallTerms, tokenizeRecallText } from "./bm25"
+import { buildExcerpt } from "./excerpt"
 import type { RecallDocument } from "./provider"
+
+const lexical = { rankBm25: rankRecallDocumentsBm25, terms: recallTerms, tokens: tokenizeRecallText, excerpt: buildExcerpt }
 
 const card = (path: string, snippet = `excerpt ${path}`): CrosslingualCard => ({ path, title: `title ${path}`, snippet })
 
@@ -127,12 +131,13 @@ describe("rerankRecallCandidatesCrosslingual", () => {
 
   test("#given a Korean question with an English view #when reranked #then the English note is reachable and judged first", async () => {
     const { decide } = strengthJudge({ "infra/autoscaler.md": 0.95, "notes/ko-autoscaler.md": 0.6 })
-    const withoutView = await rerankRecallCandidatesCrosslingual(documents, { query: "오토스케일러 임계값", decide, maxItems: 5, surfaced: new Set() })
+    const withoutView = await rerankRecallCandidatesCrosslingual(documents, { query: "오토스케일러 임계값", decide, lexical, maxItems: 5, surfaced: new Set() })
     expect(withoutView.map((row) => row.path)).not.toContain("infra/autoscaler.md")
     const withView = await rerankRecallCandidatesCrosslingual(documents, {
       query: "오토스케일러 임계값",
       views: ["cluster autoscaler threshold"],
       decide,
+      lexical,
       maxItems: 2,
       surfaced: new Set(),
     })
@@ -145,6 +150,7 @@ describe("rerankRecallCandidatesCrosslingual", () => {
     await rerankRecallCandidatesCrosslingual(documents, {
       query: "autoscaler rollback",
       decide,
+      lexical,
       maxItems: 5,
       surfaced: new Set(["infra/autoscaler.md"]),
       excludePaths: new Set(["deploy/rollback.md"]),
@@ -156,7 +162,7 @@ describe("rerankRecallCandidatesCrosslingual", () => {
 
   test("#given a judge that fails #when reranked #then the error propagates for the caller's fallback", async () => {
     const decide = async (): Promise<unknown> => answer([2])
-    await expect(rerankRecallCandidatesCrosslingual(documents, { query: "autoscaler", decide, maxItems: 2, surfaced: new Set() }))
+    await expect(rerankRecallCandidatesCrosslingual(documents, { query: "autoscaler", decide, lexical, maxItems: 2, surfaced: new Set() }))
       .rejects.toThrow(CrosslingualRerankError)
   })
 })
